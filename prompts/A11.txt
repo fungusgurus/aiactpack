@@ -1,5 +1,5 @@
 You are an EU AI-Act compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task A11 – EU Declaration of Conformity template
+Produce 1-page markdown template with blank fields for signature, NB number, date, model, manufacturer, standards.
