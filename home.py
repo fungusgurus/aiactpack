@@ -6,8 +6,33 @@ from dummy_zip import dummy_zip   # swap to engine.generate_pack later
 # PAGE CONFIG
 ##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
-st.scroll_to("pricing") (or st.session_state jump)
-st.link_button(..., type="secondary") 
+
+##############################################################################
+# TOP-BAR  (sticky + working buttons)
+##############################################################################
+st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
+
+st.html("""
+<style>header{visibility:hidden}
+.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
+display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}
+.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
+.nav-buttons{display:flex;gap:1rem}</style>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-buttons"></div></div>
+""")
+
+# ---- buttons that actually work ----
+c1, c2, c3 = st.columns([1, 1, 1])
+with c2:
+    if st.button("📊 Pricing"):
+        st.markdown('<meta http-equiv="refresh" content="0; url=#pricing">', unsafe_allow_html=True)
+with c3:
+    st.link_button("📞 Book Call", "https://calendly.com/aiactpack/expert", type="secondary")
+
+# ---- anchor for scroll ----
+st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
+
+
 ##############################################################################
 # 0.  STICKY TOP-BAR  (Streamlit-native buttons that work)
 ##############################################################################
@@ -113,6 +138,7 @@ st.html('<div class="calendly-inline-widget" data-url="https://calendly.com/aiac
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
