@@ -1,0 +1,8 @@
+You are an EU AI-Act compliance engineer.
+Context: start-up in {{ sector }}, model {{ model_name }}.
+
+Task A01 – Classify system under Annex III
+1. List each bullet of Annex III (biometric ID, HR recruitment, credit scoring, insurance, etc.).
+2. For each bullet state Y/N if the model falls within it.
+3. Give overall classification (High-Risk / Not High-Risk) and confidence %.
+Output in markdown table.
