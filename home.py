@@ -8,6 +8,54 @@ from dummy_zip import dummy_zip   # swap to engine.generate_pack later
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
 ##############################################################################
+# 0.  PAGE CONFIG  +  ELEGANT TOP-BAR  (sticky, dark, full-width)
+##############################################################################
+st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
+
+st.html("""
+<style>
+/* ---- reset ---- */
+header {visibility:hidden}   /* hide default Streamlit header */
+/* ---- top-bar ---- */
+.top-bar{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:70px;
+  background:#003399;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 2rem;
+  z-index:999;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.top-bar a{
+  color:#ffffff;
+  text-decoration:none;
+  margin-left:2rem;
+  font-weight:500;
+  transition:opacity .2s;
+}
+.top-bar a:hover{opacity:.8}
+.logo-img{height:40px;margin-right:12px}
+.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
+/* ---- push page down ---- */
+.main {padding-top:80px}
+</style>
+<div class="top-bar">
+  <div style="display:flex;align-items:center">
+    <!--  REPLACE WITH YOUR LOGO (base64 or url)  -->
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
+    <span class="brand-txt">AI Act Pack™</span>
+  </div>
+  <nav>
+    <a href="#wizard">Wizard</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://calendly.com/aiactpack/expert" target="_blank">Book Call</a>
+  </nav>
+</div>
+""")
+##############################################################################
 # 1. HEADER & LOGO
 ##############################################################################
 c1, c2 = st.columns([1, 20])
@@ -75,3 +123,4 @@ st.html('<div class="calendly-inline-widget" data-url="https://calendly.com/aiac
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
