@@ -1,5 +1,6 @@
-You are an EU AI-Act compliance engineer.
+You are a NIST AI-RMF compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task B04 – Adversarial-testing script
+Generate single CLI command using IBM Adversarial Robustness Toolbox that creates 1 000 FGSM samples, saves to art_output/ and produces robustness_report.pdf.
+Copy-paste ready.
