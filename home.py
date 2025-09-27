@@ -1,69 +1,71 @@
-# Home.py
-import streamlit as st, base64, time, os
-from pathlib import Path
+# streamlit_app.py
+import streamlit as st
+from datetime import datetime
+import json
 
-st.set_page_config(page_title="AIPacta - EU AI Act & NIST in 48 h", layout="wide",
-                   page_icon="⚖️")
-st.html("""
-<style>
-  .hero {background:#0f1117;color:#fff;padding:4rem 0;margin:-5rem -5rem 2rem -5rem;}
-  .hero h1 {font-size:3rem;margin:0;}
-  .hero p {font-size:1.2rem;margin-top:.5rem;}
-  .btn {background:#00d4aa;color:#000;padding:.75rem 1.5rem;border-radius:8px;font-weight:600;text-decoration:none;display:inline-block;margin-top:1rem;}
-</style>
-<div class="hero">
-  <div style="max-width:900px;margin:auto;padding:0 2rem;">
-    <h1>AIPacta™</h1>
-    <p>Generate EU AI-Act + NIST + ISO 42001 compliance packs in under two minutes.</p>
-    <p><strong>No lawyers. No 6-month wait. 48-hour delivery guaranteed.</strong></p>
-  </div>
-</div>
-""")
+st.set_page_config(page_title="AI-Act Packager", page_icon="📜", layout="centered")
+st.title("📜 Reg-Tech Prompt-Packager")
+st.markdown("Answer 10 questions and get a full compliance bundle in <2 min.")
 
-cols = st.columns(3)
-with cols[0]: st.metric("Packs Delivered", "1,247")
-with cols[1]: st.metric("Avg. Time Saved", "92 %")
-with cols[2]: st.metric("CE-Mark Success", "100 %")
+# ---------- 10 QUESTIONS ----------
+with st.form("intake_form"):
+    col1, col2 = st.columns(2)
+    with col1:
+        sector        = st.selectbox("1. Industry sector*", 
+                                     ["FinTech", "HealthTech", "HR-tech", "AdTech", 
+                                      "Retail", "CyberSec", "Auto", "Other"])
+        model_name    = st.text_input("2. Model trade name*", 
+                                      placeholder="e.g. CreditGPT-3")
+        model_type    = st.selectbox("3. Model family*", 
+                                     ["GPT-4", "Llama-3", "Claude-3", "Gemini", 
+                                      "Custom transformer", "Random-Forest", "XGBoost"])
+        data_types    = st.multiselect("4. Data modalities*", 
+                                       ["Text", "Image", "Tabular", "Audio", "Video"])
+        data_sources  = st.text_area("5. Training data sources (one per line)*", 
+                                     placeholder="wikimedia.org\ninternal CRM 2022-2024")
+    with col2:
+        n_users       = st.number_input("6. Expected EU users*", min_value=0, max_value=100_000_000, step=1, value=5000)
+        high_risk_annex = st.selectbox("7. High-risk use-case per Annex III?*", 
+                                       ["Biometric ID", "HR recruitment", "Credit scoring", "Insurance", "None of these"])
+        deploy_env    = st.selectbox("8. Deployment environment*", 
+                                     ["On-prem", "AWS", "Azure", "GCP", "Private cloud"])
+        ce_mark       = st.selectbox("9. Already CE-marked hardware/software?*", 
+                                     ["Yes", "No", "Partial"])
+        target_market = st.multiselect("10. Target jurisdictions*", 
+                                       ["EU", "UK", "USA", "Canada", "APAC"])
+    
+    submitted = st.form_submit_button("Generate pack →", type="primary")
 
-st.subheader("⚙️ 10-Question Wizard")
-with st.form("wizard"):
-    c1, c2 = st.columns(2)
-    with c1:
-        sector = st.selectbox("Industry*", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
-        model  = st.text_input("Model name*", placeholder="CreditGPT-3")
-        source = st.text_area("Data sources (1 per line)*", placeholder="wikimedia.org\ninternal-2022-2024")
-    with c2:
-        users = st.number_input("EU users*", 0, 50000000, 5000, step=1000)
-        annex = st.selectbox("High-risk Annex III*", ["None", "Biometric", "HR", "Credit", "Insurance"])
-        cloud = st.selectbox("Cloud*", ["AWS", "Azure", "GCP", "On-prem"])
-    submit = st.form_submit_button("Generate pack →", type="primary")
-
-if submit:
-    if not (model and source):
-        st.error("Complete mandatory fields.")
+# ---------- POST-SUBMIT ----------
+if submitted:
+    if not (model_name and data_sources):
+        st.error("Please fill all mandatory fields (*).")
         st.stop()
-    # ---- mock generation ----
+    
+    # Build JSON payload for back-end prompt loop
+    answers = {
+        "sector": sector,
+        "model_name": model_name,
+        "model_type": model_type,
+        "data_types": data_types,
+        "data_sources": data_sources.splitlines(),
+        "n_users": n_users,
+        "high_risk_annex": high_risk_annex,
+        "deploy_env": deploy_env,
+        "ce_mark": ce_mark,
+        "target_market": target_market,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    # ---- mock API call ----
     with st.spinner("Running 47-prompt chain…"):
-        time.sleep(3)
-        dummy = f"AIPacta-{model.replace(' ','_')}-pack.zip"
-        Path(dummy).write_text("zip-content-here")  # real back-end creates zip
-    st.success("Pack ready!")
-    with open(dummy, "rb") as f:
-        st.download_button("⬇️ Download compliance bundle", f, dummy)
-    os.remove(dummy)
-
-st.markdown("---")
-st.subheader("💳 Transparent Pricing")
-price = """
-| Tier | What’s included | Price |
-|------|-----------------|-------|
-| Starter | EU AI-Act model-card + DoC template | €497 |
-| Growth | Full EU + NIST pack (editable) | €1 997 |
-| Enterprise | EU + NIST + ISO 42001 + white-label | €7 500 |
-"""
-st.markdown(price)
-
-st.markdown("---")
-st.subheader("📞 Book a 15-min expert call")
-st.markdown("[https://calendly.com/aipacta/expert](https://calendly.com/aipacta/expert)")
-st.caption("© 2025 AIPacta™ — compliance without chaos.")
+        # your real back-end receives `answers` and returns zip file
+        zip_path = f"/tmp/{model_name.replace(' ','_')}_pack.zip"
+        # placeholder: write json as demo
+        with open(zip_path, "w") as f:
+            f.write(json.dumps(answers, indent=2))
+    
+    st.success("Pack generated!")
+    with open(zip_path, "rb") as f:
+        st.download_button("⬇️ Download compliance bundle", 
+                           data=f, file_name=zip_path.split("/")[-1])
