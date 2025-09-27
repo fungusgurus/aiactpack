@@ -1,53 +1,30 @@
 # Home.py
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
 
-##############################################################################
-# 0. PAGE CONFIG  +  STICKY TOP-BAR
-##############################################################################
+# ---------- PAGE ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
+# ---------- STICKY TOP-BAR ----------
 st.html("""
 <style>
-  header{visibility:hidden}
-  .top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
-           display:flex;align-items:center;justify-content:space-between;
-           padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}
-  .logo-img{height:40px;margin-right:12px}
-  .brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
-  .nav-buttons{display:flex;gap:1rem}
-  .main{padding-top:80px}
+header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-buttons{display:flex;gap:1rem}.main{padding-top:80px}
 </style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
-    <span class="brand-txt">AI Act Pack™</span>
-  </div>
-  <div class="nav-buttons"></div>
-</div>
-""")
-
-# ---- top-bar buttons ----
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div></div>""")
 c1, c2, c3 = st.columns([1, 1, 1])
 with c2:
     if st.button("📊 Pricing"):
         st.markdown('<meta http-equiv="refresh" content="0; url=#pricing">', unsafe_allow_html=True)
 with c3:
     st.link_button("📞 Book 15-min Call", "https://calendly.com/aiactpack/expert", type="secondary")
+st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="main"></div>', unsafe_allow_html=True)  # push content below bar
-
-##############################################################################
-# 1. HEADLINE
-##############################################################################
+# ---------- HEADLINE ----------
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
-##############################################################################
-# 2. 10-QUESTION WIZARD
-##############################################################################
+# ---------- 10-QUESTION WIZARD ----------
 st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
-
-with st.form("wizard"):
+with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
         sector      = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
@@ -76,9 +53,7 @@ with st.form("wizard"):
         os.remove(zip_path)
         st.success("Check your email for the invoice. Need more? See pricing below.")
 
-##############################################################################
-# 3. DUMMY ZIP HELPER (replace later with engine.generate_pack)
-##############################################################################
+# ---------- DUMMY ZIP (swap later) ----------
 def dummy_zip(payload: dict):
     tmp = pathlib.Path(tempfile.mkdtemp())
     zip_path = tmp / f"AIACTPACK_{datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
@@ -87,9 +62,7 @@ def dummy_zip(payload: dict):
         z.writestr("payload.json", json.dumps(payload, indent=2))
     return zip_path
 
-##############################################################################
-# 4. PRICING SECTION
-##############################################################################
+# ---------- PRICING ----------
 st.markdown("---")
 st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
@@ -101,16 +74,12 @@ with c2:
 with c3:
     st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
 
-##############################################################################
-# 5. BOOK CALL
-##############################################################################
+# ---------- BOOK CALL ----------
 st.markdown("---")
 st.markdown("### 📞 Book a 15-min Expert Call")
 st.markdown("Choose a slot → receive Zoom link instantly.")
 st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="primary")
 
-##############################################################################
-# 6. FOOTER
-##############################################################################
+# ---------- FOOTER ----------
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
