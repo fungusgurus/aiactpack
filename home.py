@@ -22,25 +22,6 @@ with c3:
     st.link_button("📞 Book 15-min Call", "https://calendly.com/aiactpack/expert", type="secondary")
 
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
-
-##############################################################################
-# PRICING SECTION  (jump target)
-##############################################################################
-if st.session_state.goto == "pricing":
-    st.components.v1.html("<script>window.scrollTo(0, document.body.scrollHeight);</script>", height=0)
-
-st.markdown("---")
-st.markdown("## 💳 Transparent Pricing")
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.link_button("€497 – Starter", "https://buy.stripe.com/xxxxx497", use_container_width=True)
-with c2:
-    st.link_button("€1 997 – Growth", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
-with c3:
-    st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
-
-
-
 ##############################################################################
 # 1. HEADLINE
 ##############################################################################
@@ -117,6 +98,7 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
