@@ -158,3 +158,7 @@ st.html(f"""
 st.markdown("---")
 st.markdown('<div class="footer">© 2025 AI Act Pack™ – compliance without chaos  |  <a href="https://www.aiactpack.com/terms">Terms</a>  |  <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
 
+##############################################################################
+# 7. INVOKE THE WIZARD (was missing)
+##############################################################################
+wizard()
