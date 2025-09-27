@@ -24,17 +24,6 @@ with c3:
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
 ##############################################################################
-# WIZARD  (always visible)
-##############################################################################
-st.markdown("### 🧭 10-Question Compliance Wizard")
-with st.form("wizard"):
-    # <<< 10 questions here >>> #
-    submitted = st.form_submit_button("Generate compliance pack →", type="primary")
-    if submitted:
-        # your generate logic #
-        st.success("Bundle ready – scroll down for pricing.")
-
-##############################################################################
 # PRICING SECTION  (jump target)
 ##############################################################################
 if st.session_state.goto == "pricing":
@@ -128,6 +117,7 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
