@@ -1,0 +1,7 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}, data sources {{ data_sources }}.
+
+Task A03 – Data governance gap §10(2)
+Requirements: relevance, representativeness, completeness, freedom of error.
+For each: evidence present Y/N, gap ≤ 50 words, risk colour.
+Markdown table.

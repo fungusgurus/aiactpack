@@ -1,0 +1,5 @@
+You are an ISO 42001 AI-management-system auditor.
+Context: model {{ model_name }}.
+
+Task C13 – Management review 9.3
+Meeting minutes template: date, attendees, inputs discussed, decisions, actions, deadlines.

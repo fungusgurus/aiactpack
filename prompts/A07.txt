@@ -1,0 +1,5 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}.
+
+Task A07 – Post-market monitoring plan §61
+Draft a 12-month monitoring plan: drift detection, incident reporting, user feedback, update cycle. ≤ 250 words.

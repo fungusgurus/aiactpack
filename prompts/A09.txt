@@ -1,0 +1,5 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}.
+
+Task A09 – Instructions for use §14
+Write user-facing IFU (max 400 words) containing: intended use, limitations, performance, human-oversight, maintenance, support contact.

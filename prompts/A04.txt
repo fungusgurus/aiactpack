@@ -1,0 +1,14 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}, sector {{ sector }}, n_users {{ n_users }}.
+
+Task A04 – Technical documentation pack §11(1)(a-l)
+Generate a model-card markdown that contains:
+1. Intended purpose
+2. Performance metrics
+3. Human-oversight design
+4. Cyber-security measures
+5. Training data description
+6. Evaluation methods
+7. Risks & mitigations
+8. CE-marking info
+Keep each section ≤ 150 words.

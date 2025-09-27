@@ -1,0 +1,6 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}.
+
+Task A08 – Serious incident reporting §62
+Provide template table: incident ID, date, description, severity, root-cause, corrective action, date closed.
+Markdown table.

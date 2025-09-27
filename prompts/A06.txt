@@ -1,0 +1,6 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}, deploy_env {{ deploy_env }}.
+
+Task A06 – Conformity assessment route
+Choose Module B, C2, H or internal control. Justify choice, list required documents, estimated cost & timeline.
+Markdown bullet list.
