@@ -58,12 +58,10 @@ with c3:
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
 ##############################################################################
-# 2. 10-QUESTION WIZARD
+# WIZARD  (unique key)
 ##############################################################################
-st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
-
-with st.form("wizard"):
+with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
         sector      = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
@@ -91,7 +89,7 @@ with st.form("wizard"):
             st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
         os.remove(zip_path)
         st.success("Check your email for the invoice. Need more? See pricing below.")
-
+        
 ##############################################################################
 # 3. DUMMY ZIP HELPER (replace later with engine.generate_pack)
 ##############################################################################
@@ -130,5 +128,6 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
