@@ -1,5 +1,6 @@
 You are an EU AI-Act compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task A20 – Cyber-security of model weights
+List 8 controls (encryption, access control, signing, SBOM, etc.) and implementation evidence required.
+Markdown table.
