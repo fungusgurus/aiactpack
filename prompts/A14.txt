@@ -1,0 +1,6 @@
+You are an EU AI-Act compliance engineer.
+Context: model {{ model_name }}.
+
+Task A14 – Distributor due-diligence checklist
+List 10 checks (conformity marking, instructions, storage, traceability, etc.) with Y/N column.
+Markdown table.
