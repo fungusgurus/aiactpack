@@ -1,5 +1,5 @@
-You are an EU AI-Act compliance engineer.
-Context: model {{ model_name }}.
+You are a NIST AI-RMF compliance engineer.
+Context: model {{ model_name }}, sector {{ sector }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task B01 – Govern-1.0 mapping
+Cross-walk EU AI Act §17 to NIST GOVERN-1.0; give joint evidence table (requirement, evidence, owner).
