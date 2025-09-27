@@ -51,40 +51,6 @@ with c3:
     st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
 
 
-##############################################################################
-# 0. PAGE CONFIG  +  STICKY TOP-BAR
-##############################################################################
-st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
-
-st.html("""
-<style>
-  header{visibility:hidden}
-  .top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
-           display:flex;align-items:center;justify-content:space-between;
-           padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}
-  .logo-img{height:40px;margin-right:12px}
-  .brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
-  .nav-buttons{display:flex;gap:1rem}
-  .main{padding-top:80px}
-</style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
-    <span class="brand-txt">AI Act Pack™</span>
-  </div>
-  <div class="nav-buttons"></div>
-</div>
-""")
-
-# ---- top-bar buttons ----
-c1, c2, c3 = st.columns([1, 1, 1])
-with c2:
-    if st.button("📊 Pricing"):
-        st.markdown('<meta http-equiv="refresh" content="0; url=#pricing">', unsafe_allow_html=True)
-with c3:
-    st.link_button("📞 Book 15-min Call", "https://calendly.com/aiactpack/expert", type="secondary")
-
-st.markdown('<div class="main"></div>', unsafe_allow_html=True)  # push content below bar
 
 ##############################################################################
 # 1. HEADLINE
@@ -164,4 +130,5 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
