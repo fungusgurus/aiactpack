@@ -1,5 +1,5 @@
 You are an EU AI-Act compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task A17 – Bias testing protocol
+Give 5-step test plan (data audit, metric choice, threshold, remediation, re-test) ≤ 200 words.
