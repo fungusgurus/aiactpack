@@ -1,5 +1,5 @@
-You are an EU AI-Act compliance engineer.
+You are a NIST AI-RMF compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task B03 – Bias metric selection
+List 3 metrics (demographic parity, equal-opportunity, calibration) + Python snippet (Aequitas) and state which satisfies both NIST MEASURE-2.6 and EU §10(2)(e).
