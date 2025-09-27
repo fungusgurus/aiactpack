@@ -68,6 +68,7 @@ st.markdown("Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no
 ##############################################################################
 # 2. 10-QUESTION WIZARD
 ##############################################################################
+<a id="Wizard"></a>
 st.markdown("### 🧭 10-Question Compliance Wizard")
 with st.form("wizard"):
     col1, col2 = st.columns(2)
@@ -101,6 +102,7 @@ with st.form("wizard"):
 ##############################################################################
 # 3. PRICING
 ##############################################################################
+<a id="Pricing"></a>
 st.markdown("---")
 st.markdown("## 💳 Transparent Pricing")
 c1, c2, c3 = st.columns(3)
@@ -123,6 +125,7 @@ st.html('<div class="calendly-inline-widget" data-url="https://calendly.com/aiac
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
