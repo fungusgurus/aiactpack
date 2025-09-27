@@ -2,6 +2,56 @@
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
 
 ##############################################################################
+# TOP-BAR  (works on every Streamlit version)
+##############################################################################
+if "goto" not in st.session_state:
+    st.session_state.goto = None
+
+# ---- sticky bar ----
+st.html("""
+<style>header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-buttons{display:flex;gap:1rem}.main{padding-top:80px}</style>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div></div>
+""")
+
+# ---- working nav buttons ----
+c1, c2, c3 = st.columns([1, 1, 1])
+with c2:
+    if st.button("📊 Pricing"):
+        st.session_state.goto = "pricing"
+with c3:
+    st.link_button("📞 Book 15-min Call", "https://calendly.com/aiactpack/expert", type="secondary")
+
+st.markdown('<div class="main"></div>', unsafe_allow_html=True)
+
+##############################################################################
+# WIZARD  (always visible)
+##############################################################################
+st.markdown("### 🧭 10-Question Compliance Wizard")
+with st.form("wizard"):
+    # <<< 10 questions here >>> #
+    submitted = st.form_submit_button("Generate compliance pack →", type="primary")
+    if submitted:
+        # your generate logic #
+        st.success("Bundle ready – scroll down for pricing.")
+
+##############################################################################
+# PRICING SECTION  (jump target)
+##############################################################################
+if st.session_state.goto == "pricing":
+    st.components.v1.html("<script>window.scrollTo(0, document.body.scrollHeight);</script>", height=0)
+
+st.markdown("---")
+st.markdown("## 💳 Transparent Pricing")
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.link_button("€497 – Starter", "https://buy.stripe.com/xxxxx497", use_container_width=True)
+with c2:
+    st.link_button("€1 997 – Growth", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
+with c3:
+    st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
+
+
+##############################################################################
 # 0. PAGE CONFIG  +  STICKY TOP-BAR
 ##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
@@ -114,3 +164,4 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
