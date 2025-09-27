@@ -6,11 +6,8 @@ from dummy_zip import dummy_zip   # swap to engine.generate_pack later
 # PAGE CONFIG
 ##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
-
-| Item               | Fix                                                                                      |
-| ------------------ | ---------------------------------------------------------------------------------------- |
-| **Pricing scroll** | `st.scroll_to("pricing")` (or `st.session_state` jump)                                   |
-| **Book Call**      | `st.link_button(..., type="secondary")` opens Calendly in **new tab** — no iframe block. |
+st.scroll_to("pricing") (or st.session_state jump)
+st.link_button(..., type="secondary") opens Calendly in new tab — no iframe block.
 
   
 ##############################################################################
@@ -129,6 +126,7 @@ st.html('<div class="calendly-inline-widget" data-url="https://calendly.com/aiac
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
