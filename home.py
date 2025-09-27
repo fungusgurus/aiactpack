@@ -6,55 +6,45 @@ from dummy_zip import dummy_zip   # swap to engine.generate_pack later
 # PAGE CONFIG
 ##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
-  
+st.scroll_to("pricing") (or st.session_state jump)
+st.link_button(..., type="secondary") 
 ##############################################################################
-# 0.  PAGE CONFIG  +  ELEGANT TOP-BAR  (sticky, dark, full-width)
+# 0.  STICKY TOP-BAR  (Streamlit-native buttons that work)
 ##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
+# CSS only for looks — no <a> tags
 st.html("""
 <style>
-/* ---- reset ---- */
-header {visibility:hidden}   /* hide default Streamlit header */
-/* ---- top-bar ---- */
+header{visibility:hidden}
 .top-bar{
-  position:fixed;
-  top:0;left:0;right:0;
-  height:70px;
-  background:#003399;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 2rem;
-  z-index:999;
-  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
-.top-bar a{
-  color:#ffffff;
-  text-decoration:none;
-  margin-left:2rem;
-  font-weight:500;
-  transition:opacity .2s;
-}
-.top-bar a:hover{opacity:.8}
 .logo-img{height:40px;margin-right:12px}
 .brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
-/* ---- push page down ---- */
-.main {padding-top:80px}
+.nav-buttons{display:flex;gap:1rem}
 </style>
 <div class="top-bar">
   <div style="display:flex;align-items:center">
-    <!--  REPLACE WITH YOUR LOGO (base64 or url)  -->
     <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
     <span class="brand-txt">AI Act Pack™</span>
   </div>
-  <nav>
-    <a href="#wizard">Wizard</a>
-    <a href="#pricing">Pricing</a>
-    <a href="https://calendly.com/aiactpack/expert" target="_blank">Book Call</a>
-  </nav>
+  <div class="nav-buttons">
+    <!--  Streamlit buttons will be injected here  -->
+  </div>
 </div>
 """)
+
+# ---- actual buttons that work ----
+c1, c2, c3 = st.columns([1, 1, 1])
+with c2:
+    if st.button("📊 Pricing", key="nav_price"):
+        st.scroll_to("pricing")          # requires Streamlit ≥ 1.29
+with c3:
+    st.link_button("📞 Book Call", "https://calendly.com/aiactpack/expert",
+                   type="secondary", use_container_width=True)
 ##############################################################################
 # 1. HEADER & LOGO
 ##############################################################################
@@ -123,6 +113,7 @@ st.html('<div class="calendly-inline-widget" data-url="https://calendly.com/aiac
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
