@@ -1,5 +1,6 @@
-You are an EU AI-Act compliance engineer.
+You are a NIST AI-RMF compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task B07 – Drift trigger & threshold
+Define statistical threshold (e.g. PSI > 0.2), monitoring window, alert recipient, rollback plan.
+≤ 150 words.
