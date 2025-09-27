@@ -1,5 +1,6 @@
 You are an EU AI-Act compliance engineer.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task A16 – Human oversight logging
+Template log columns: timestamp, operator ID, decision, AI output, override Y/N, signature.
+Markdown table.
