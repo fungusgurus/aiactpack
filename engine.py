@@ -1,5 +1,6 @@
 # engine.py
 import os, pathlib, datetime, zipfile, csv, json, tempfile, time
+import streamlit as st          #  ← add this
 from jinja2 import Template
 import openai
 from openai import RateLimitError
