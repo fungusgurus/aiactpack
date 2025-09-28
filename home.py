@@ -1,19 +1,19 @@
-# Home.py
+# home.py
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
-from engine import generate_pack   # column 0 – no indent
+from engine import generate_pack   # real engine
 
-# ---------- PAGE ----------
+##############################################################################
+# PAGE CONFIG
+##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
-# ---------- STICKY TOP-BAR ----------
+##############################################################################
+# STICKY TOP-BAR (logo left, buttons right)
+##############################################################################
 st.html(r"""
 <style>
-header{visibility:hidden}
-.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}
-.logo-img{height:40px;margin-right:12px}
-.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
-.nav-group{display:flex;align-items:center;gap:.75rem}
-.main{padding-top:80px}
+header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-group{display:flex;align-items:center;gap:.75rem}.main{padding-top:80px}
 </style>
 <div class="top-bar">
   <div style="display:flex;align-items:center">
@@ -27,12 +27,16 @@ header{visibility:hidden}
   </div>
 </div>
 """)
+st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-
-# ---------- HEADLINE ----------
+##############################################################################
+# HEADLINE
+##############################################################################
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
-# ---------- 10-QUESTION WIZARD ----------
+##############################################################################
+# 10-QUESTION WIZARD
+##############################################################################
 st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
 with st.form("aiactpack_wizard"):
@@ -64,16 +68,9 @@ with st.form("aiactpack_wizard"):
         os.remove(zip_path)
         st.success("Check your email for the invoice. Need more? See pricing below.")
 
-# ---------- DUMMY ZIP (swap later) ----------
-def dummy_zip(payload: dict):
-    tmp = pathlib.Path(tempfile.mkdtemp())
-    zip_path = tmp / f"AIACTPACK_{datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr("Executive_Summary.md", f"# EU AI Act Pack\n\nGenerated for {payload.get('model_name','model')}")
-        z.writestr("payload.json", json.dumps(payload, indent=2))
-    return zip_path
-
-# ---------- PRICING ----------
+##############################################################################
+# PRICING SECTION
+##############################################################################
 st.markdown("---")
 st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
@@ -85,20 +82,16 @@ with c2:
 with c3:
     st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
 
-# ---------- BOOK CALL ----------
+##############################################################################
+# BOOK CALL
+##############################################################################
 st.markdown("---")
 st.markdown("### 📞 Book a 15-min Expert Call")
 st.markdown("Choose a slot → receive Zoom link instantly.")
 st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="primary")
 
-# ---------- FOOTER ----------
+##############################################################################
+# FOOTER
+##############################################################################
 st.markdown("---")
-st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
-
-
-
-
-
-
-
-
+st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
