@@ -3,25 +3,17 @@ import os, pathlib, datetime, zipfile, csv, json, tempfile, time
 from jinja2 import Template
 import openai
 from openai import RateLimitError
-import streamlit as st
 
-##############################################################################
-# CONFIG
-##############################################################################
 PROMPTS_DIR   = pathlib.Path(__file__).with_suffix('').parent / "prompts"
 TEMPLATES_DIR = pathlib.Path(__file__).with_suffix('').parent / "templates"
 client        = openai.OpenAI(api_key=os.getenv("OPENAI_KEY"))
-RATE_LIMIT_PAUSE = 10          # seconds between calls
+RATE_LIMIT_PAUSE = 10
 MAX_RETRIES      = 3
 
-##############################################################################
-# HELPERS
-##############################################################################
 def load_prompt(code: str) -> str:
     return (PROMPTS_DIR / f"{code}.txt").read_text(encoding="utf-8")
 
 def call_llm(code: str, prompt: str) -> str:
-    """GPT-3.5-turbo with retry + rate-limit back-off."""
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             response = client.chat.completions.create(
@@ -36,7 +28,7 @@ def call_llm(code: str, prompt: str) -> str:
     return f"[Rate-limit – verify manually] {code}"
 
 ##############################################################################
-# MASTER PACK BUILDER  (stream-after-every-block + partial-safe)
+# BUTTON-FREE PACK BUILDER  (only builds zip, no Streamlit calls)
 ##############################################################################
 def generate_pack(payload: dict) -> pathlib.Path:
     stamp   = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -44,68 +36,31 @@ def generate_pack(payload: dict) -> pathlib.Path:
     artefacts_dir = tmpdir / "artefacts"
     artefacts_dir.mkdir(exist_ok=True)
 
-    # ---- decide which blocks to run ----
     blocks = []
     if payload.get("do_eu"):   blocks += [f"A{i:02d}" for i in range(1, 21)]
     if payload.get("do_nist"): blocks += [f"B{i:02d}" for i in range(1, 15)]
     if payload.get("do_iso"):  blocks += [f"C{i:02d}" for i in range(1, 14)]
 
-    if not blocks:
-        st.warning("No blocks selected – returning empty pack.")
-        return tmpdir / "EMPTY.zip"
-
-    total = len(blocks)
-    progress = st.progress(0)
-
-    # ---- helper: write block immediately ----
-    def write_block(name: str, content: str):
-        (artefacts_dir / f"{name}.md").write_text(content, encoding="utf-8")
-
     # ---- A00 Executive Summary (always if EU ticked) ----
     if payload.get("do_eu"):
-        with st.spinner("A00 Executive Summary..."):
-            summary = call_llm("A00", Template(load_prompt("A00")).render(ctx=payload))
-        write_block("A00_Executive_Summary", summary)
+        summary = call_llm("A00", Template(load_prompt("A00")).render(ctx=payload))
+        (artefacts_dir / "A00_Executive_Summary.md").write_text(summary, encoding="utf-8")
 
-    # ---- loop: stream each block ----
-    for idx, code in enumerate(blocks, 1):
-        progress.progress(idx / total)
-        with st.spinner(f"{code} ..."):
-            try:
-                resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
-            except Exception as e:
-                resp = f"[Error – verify manually] {code}: {str(e)[:100]}"
-        write_block(code, resp)
+    # ---- loop: build each block ----
+    for code in blocks:
+        resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
+        (artefacts_dir / f"{code}.md").write_text(resp, encoding="utf-8")
 
-        # ---- STREAM ZIP AFTER EVERY BLOCK ----
-        zip_path = tmpdir / f"AIACTPACK_partial_{code}.zip"
-        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for file in artefacts_dir.rglob("*"):
-                zf.write(file, file.relative_to(tmpdir))
+    # ---- EU Declaration (if EU ticked) ----
+    if payload.get("do_eu"):
+        from jinja2 import Template
+        decl_tmpl = Template((TEMPLATES_DIR / "EU_declaration.md").read_text())
+        declaration = decl_tmpl.render(ctx=payload, date=datetime.datetime.utcnow().strftime("%d %B %Y"))
+        (artefacts_dir / "04_EU_Declaration_of_Conformity.md").write_text(declaration, encoding="utf-8")
 
-        # ---- OFFER DOWNLOAD NOW ----
-        st.success(f"Block {code} done – download even if later blocks fail.")
-        with open(zip_path, "rb") as f:
-            st.download_button(
-                label=f"⬇️ Download up to {code}",
-                data=f,
-                file_name=zip_path.name,
-                mime="application/zip",
-                key=f"dl_{code}"   # unique key per block
-            )
-
-    # ---- final full zip ----
+    # ---- zip everything ----
     final_zip = tmpdir / f"AIACTPACK_{stamp}.zip"
     with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         for file in artefacts_dir.rglob("*"):
             zf.write(file, file.relative_to(tmpdir))
-
-    st.success("All selected blocks complete. Final download below.")
-    with open(final_zip, "rb") as f:
-        st.download_button(
-            label="⬇️ Final bundle",
-            data=f,
-            file_name=final_zip.name,
-            mime="application/zip"
-        )
     return final_zip
