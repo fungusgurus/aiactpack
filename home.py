@@ -90,7 +90,7 @@ st.info("You can also download the full bundle once all blocks are built.")
 # PRICING SECTION
 ##############################################################################
 st.markdown("---")
-st.markdown('<a name="pricing"></a>', unsafe.allow_html=True)
+st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -116,3 +116,4 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
+
