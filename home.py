@@ -181,6 +181,9 @@ if submitted:
 # --------------------------------------------------
 #  DOWNLOAD / PAY AREA
 # --------------------------------------------------
+# --------------------------------------------------
+#  DOWNLOAD AREA
+# --------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Downloads")
@@ -195,15 +198,13 @@ if st.session_state.zips:
                 mime="application/zip",
                 key=f"dl_{z.stem}",
             )
-    else:
+    else:  # <<<  pay branch hidden when TEST_MODE is True
         st.info("Pay once, then download every block instantly.")
         if st.button("Create secure checkout session", type="primary"):
             ck_url = create_stripe_checkout_session(st.session_state.cart)
             st.session_state.checkout_url = ck_url
-
         if st.session_state.checkout_url:
             st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
-
 # --------------------------------------------------
 #  FOOTER
 # --------------------------------------------------
@@ -220,6 +221,7 @@ st.markdown(
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
 
 
 
