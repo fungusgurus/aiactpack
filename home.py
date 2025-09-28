@@ -51,46 +51,42 @@ with st.form("aiactpack_wizard"):
 
         payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
 
-        # ---- build & zip block-by-block ----
+        # ---- build & collect paths ----
         blocks = []
         if do_eu:   blocks += [f"A{i:02d}" for i in range(1, 21)]
         if do_nist: blocks += [f"B{i:02d}" for i in range(1, 15)]
         if do_iso:  blocks += [f"C{i:02d}" for i in range(1, 14)]
-
         if not blocks:
             st.error("No blocks selected.")
             st.stop()
 
         st.info("Building block-by-block. Downloads appear below.")
 
+        zip_paths = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
                 md_path = build_block(code, payload)   # returns pathlib.Path
-            zip_path = zip_block(md_path)              # returns pathlib.Path
-            st.success(f"{code} complete")
-            # ---- DOWNLOAD BUTTON OUTSIDE FORM ----
-            st.download_button(
-                label=f"⬇️ {code} pack",
-                data=open(zip_path, "rb"),
-                file_name=zip_path.name,
-                mime="application/zip",
-                key=f"dl_{code}"
-            )
+                zip_path = zip_block(md_path)          # returns pathlib.Path
+                zip_paths.append(zip_path)
+        st.success("All selected blocks complete.")
 
-        st.success("All selected blocks complete. Additional downloads appear below.")
-
-##############################################################################
-# DOWNLOAD BUTTONS OUTSIDE FORM (no form error)
-########################################################################----------
+# ---------- DOWNLOAD BUTTONS OUTSIDE FORM (no form error) ----------
 st.markdown("---")
 st.markdown("### 📦 Individual Block Downloads")
-st.info("You can also download the full bundle once all blocks are built.")
+for zip_path in zip_paths:
+    st.download_button(
+        label=f"⬇️ {zip_path.stem}",
+        data=open(zip_path, "rb"),
+        file_name=zip_path.name,
+        mime="application/zip",
+        key=f"dl_{zip_path.stem}"
+    )
 
 ##############################################################################
 # PRICING SECTION
 ##############################################################################
 st.markdown("---")
-st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
+st.markdown('<a name="pricing"></a>', unsafe.allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -115,5 +111,4 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 # FOOTER
 ##############################################################################
 st.markdown("---")
-st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
-
+st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe.allow_html=True)
