@@ -234,3 +234,18 @@ def create_stripe_checkout_session(cart: list[str]) -> str:
         timeout=10,
     )
     return resp.json()["url"]
+# --------------------------------------------------
+#  ENGINE STUBS  (replace with real engine later)
+# --------------------------------------------------
+import zipfile
+
+def build_block(code: str, payload: dict) -> Path:
+    """Dummy engine: writes a small markdown file and returns its path."""
+    tmp = Path(tempfile.mktemp(suffix=".md"))
+    tmp.write_text(f"# Block {code}\n\nPayload: {payload}\n", encoding="utf-8")
+    return tmp
+
+def zip_block(md_path: Path, zip_path: Path) -> None:
+    """Create a zip containing the markdown."""
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, arcname=md_path.name)
