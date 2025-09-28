@@ -3,7 +3,7 @@ import os, pathlib, datetime, zipfile, csv, json, tempfile, time
 from jinja2 import Template
 import openai
 from openai import RateLimitError
-from engine import build_block, zip_block
+
 
 PROMPTS_DIR   = pathlib.Path(__file__).with_suffix('').parent / "prompts"
 TEMPLATES_DIR = pathlib.Path(__file__).with_suffix('').parent / "templates"
