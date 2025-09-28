@@ -7,6 +7,7 @@ from openai import RateLimitError
 
 PROMPTS_DIR   = pathlib.Path(__file__).with_suffix('').parent / "prompts"
 TEMPLATES_DIR = pathlib.Path(__file__).with_suffix('').parent / "templates"
+print("OPENAI_KEY present:", bool(os.getenv("OPENAI_KEY")))
 client        = openai.OpenAI(api_key=os.getenv("OPENAI_KEY"))
 RATE_LIMIT_PAUSE = 10
 MAX_RETRIES      = 3
