@@ -51,7 +51,7 @@ header{visibility:hidden}
 )
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
+st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
 # ----------  SESSION STATE  ----------
 if "zips" not in st.session_state:
@@ -227,5 +227,6 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
 
 
