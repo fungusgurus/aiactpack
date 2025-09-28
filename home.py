@@ -71,15 +71,18 @@ with st.form("aiactpack_wizard"):
         if not (do_eu or do_nist or do_iso):
             st.error("Select at least one compliance block.")
             st.stop()
-
         payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
         with st.spinner("Running selected prompts…"):
-            zip_path = generate_pack(payload)
+            zip_path = generate_pack(payload)   # engine returns final path
         st.success("Pack built (partial if rate-limit hit). Download below.")
-        with open(zip_path, "rb") as f:
-            st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
-        os.remove(zip_path)
-        st.success("Check your email for the invoice. Need more? See pricing below.")
+
+# ---------- DOWNLOAD BUTTONS OUTSIDE FORM ----------
+with st.container():
+    if st.session_state.get("last_zip"):
+        with open(st.session_state["last_zip"], "rb") as f:
+            st.download_button("⬇️ Download bundle", f, file_name="AIACTPACK.zip")
+    else:
+        st.info("No pack generated yet – run the wizard above.")
 
 ##############################################################################
 # DYNAMIC PRICING (reads selected blocks)
@@ -140,3 +143,4 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
+
