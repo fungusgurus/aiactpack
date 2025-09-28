@@ -1,20 +1,20 @@
-# home.py  (test-friendly edition)
+# home.py  –  drop-in replacement with all fixes
+# 1. Individual-prompt check-boxes stay visible
+# 2. Individual-bundle (€497) waits for EU/NIST/ISO choice
+# 3. Test-mode bypass with ?test=1
+# --------------------------------------------------
 import os
 import shutil
 import tempfile
+import zipfile
 from pathlib import Path
-from engine import build_block, zip_block
-import requests
+
 import streamlit as st
 
-# --------------------------------------------------
-# 0.  BACK-DOOR FOR LOCAL TESTING
-# --------------------------------------------------
+# ----------  TEST-MODE BYPASS  ----------
 TEST_MODE = st.query_params.get("test", "") == "1"
 
-# --------------------------------------------------
-# 1.  PAGE DECOR
-# --------------------------------------------------
+# ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
 st.html(
@@ -46,9 +46,7 @@ st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
-# --------------------------------------------------
-# 2.  SESSION STATE
-# --------------------------------------------------
+# ----------  SESSION STATE  ----------
 if "zips" not in st.session_state:
     st.session_state.zips: list[Path] = []
 if "cart" not in st.session_state:
@@ -56,9 +54,7 @@ if "cart" not in st.session_state:
 if "checkout_url" not in st.session_state:
     st.session_state.checkout_url: str | None = None
 
-# --------------------------------------------------
-# 3.  10-QUESTION WIZARD
-# --------------------------------------------------
+# ----------  10-QUESTION WIZARD  ----------
 st.markdown("### 🧭 10-Question Compliance Wizard")
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
@@ -84,60 +80,65 @@ with st.form("aiactpack_wizard"):
         help="Pay only for what you need.",
     )
 
+    # ---- INDIVIDUAL PROMPTS  (always drawn inside form) ----
+    selected_individual: list[str] = []
+    if mode == "Individual prompts (€50 each)":
+        st.markdown("### 📋 Select individual prompts")
+        cols = st.columns(3)
+        for i in range(1, 21):
+            with cols[(i - 1) % 3]:
+                if st.checkbox(f"A{i:02d} (€50)", value=False, key=f"A{i:02d}"):
+                    selected_individual.append(f"A{i:02d}")
+        for i in range(1, 15):
+            with cols[(i - 1) % 3]:
+                if st.checkbox(f"B{i:02d} (€50)", value=False, key=f"B{i:02d}"):
+                    selected_individual.append(f"B{i:02d}")
+        for i in range(1, 14):
+            with cols[(i - 1) % 3]:
+                if st.checkbox(f"C{i:02d} (€50)", value=False, key=f"C{i:02d}"):
+                    selected_individual.append(f"C{i:02d}")
+
+    # ---- BUNDLE CHOICE ----
     bundle_choice: str | None = None
     if mode == "Individual bundle (€497)":
         bundle_choice = st.radio(
             "Which bundle do you need?",
             ["EU AI-Act", "NIST AI RMF", "ISO 42001"],
             horizontal=True,
-            help="Each bundle contains the prompts required for that framework.",
+            key="bundle_choice",
         )
+        if not bundle_choice:
+            st.warning("Please choose EU AI-Act, NIST AI RMF or ISO 42001 above.")
 
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # --------------------------------------------------
-# 4.  POST-SUBMIT
+#  POST-SUBMIT
 # --------------------------------------------------
 if submitted:
+    # guards
     if not model_name or not data_sources:
         st.error("Please complete mandatory fields.")
         st.stop()
+    if mode == "Individual bundle (€497)" and not bundle_choice:
+        st.error("Please select which individual bundle you need.")
+        st.stop()
 
-    payload = {
-        k: v
-        for k, v in locals().items()
-        if k
-        in {
-            "sector",
-            "model_name",
-            "n_users",
-            "high_risk",
-            "data_modal",
-            "deploy_env",
-            "ce_mark",
-            "target_mkt",
-            "sandbox",
-            "model_family",
-            "data_sources",
-        }
-    }
+    # minimal payload
+    payload = {k: v for k, v in locals().items() if k in {
+        "sector", "model_name", "n_users", "high_risk", "data_modal",
+        "deploy_env", "ce_mark", "target_mkt", "sandbox", "model_family", "data_sources"
+    }}
 
+    # decide blocks
     blocks: list[str] = []
     if mode == "Individual prompts (€50 each)":
-        for i in range(1, 21):
-            if st.checkbox(f"A{i:02d} (€50)", value=False):
-                blocks.append(f"A{i:02d}")
-        for i in range(1, 15):
-            if st.checkbox(f"B{i:02d} (€50)", value=False):
-                blocks.append(f"B{i:02d}")
-        for i in range(1, 14):
-            if st.checkbox(f"C{i:02d} (€50)", value=False):
-                blocks.append(f"C{i:02d}")
+        blocks = selected_individual
     elif mode == "Individual bundle (€497)":
         bundle_blocks = {
-            "EU AI-Act": [f"A{i:02d}" for i in range(1, 21)],
+            "EU AI-Act":   [f"A{i:02d}" for i in range(1, 21)],
             "NIST AI RMF": [f"B{i:02d}" for i in range(1, 15)],
-            "ISO 42001": [f"C{i:02d}" for i in range(1, 14)],
+            "ISO 42001":   [f"C{i:02d}" for i in range(1, 14)],
         }
         blocks = bundle_blocks[bundle_choice]
     elif mode == "Complete bundle (€1 397)":
@@ -147,18 +148,16 @@ if submitted:
         st.error("No blocks selected.")
         st.stop()
 
-    # Build
+    # build & zip
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         zip_paths: list[Path] = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
-                print("build_block exists?", "build_block" in globals())
-                md_path = build_block(code, payload)  # your engine
+                md_path = build_block(code, payload)
                 zip_path = tmpdir_path / f"{code}.zip"
                 zip_block(md_path, zip_path)
                 zip_paths.append(zip_path)
-
         persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
         saved = [shutil.copy2(z, persist_dir / z.name) for z in zip_paths]
 
@@ -167,7 +166,7 @@ if submitted:
     st.success("All selected blocks complete.  Pay once below, then download.")
 
 # --------------------------------------------------
-# 5.  DOWNLOAD / PAY AREA
+#  DOWNLOAD / PAY AREA
 # --------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
@@ -186,7 +185,6 @@ if st.session_state.zips:
     else:
         st.info("Pay once, then download every block instantly.")
         if st.button("Create secure checkout session", type="primary"):
-            # stub: replace with your backend endpoint that creates Stripe Checkout
             ck_url = create_stripe_checkout_session(st.session_state.cart)
             st.session_state.checkout_url = ck_url
 
@@ -194,7 +192,7 @@ if st.session_state.zips:
             st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
 
 # --------------------------------------------------
-# 6.  FOOTER
+#  FOOTER
 # --------------------------------------------------
 st.markdown("---")
 st.markdown(
@@ -207,48 +205,21 @@ st.markdown(
 )
 
 # --------------------------------------------------
-# 7.  STUBS (replace with real engine + Stripe webhook)
+#  ENGINE + STRIPE STUBS  (replace with real modules later)
 # --------------------------------------------------
-def build_block(code: str, payload: dict) -> Path:
-    """Dummy engine: writes a small markdown file and returns its path."""
-    tmp = Path(tempfile.mktemp(suffix=".md"))
-    tmp.write_text(f"# Block {code}\n\nPayload: {payload}\n", encoding="utf-8")
-    return tmp
+import zipfile, tempfile
 
+def build_block(code: str, payload: dict) -> Path:
+    """ Stub – writes a small markdown file. """
+    out = Path(tempfile.mktemp(suffix=".md"))
+    out.write_text(f"# {code}\nPayload: {payload}\n", encoding="utf-8")
+    return out
 
 def zip_block(md_path: Path, zip_path: Path) -> None:
-    """Create a zip containing the markdown."""
-    import zipfile
-
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(md_path, arcname=md_path.name)
-
+    """ Zip single markdown file. """
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, md_path.name)
 
 def create_stripe_checkout_session(cart: list[str]) -> str:
-    """Stub.  Returns a fake URL if STRIPE_SECRET_KEY missing."""
-    if not os.getenv("STRIPE_SECRET_KEY"):
-        return "https://stripe.com/docs/testing"
-    # Real implementation: POST to your backend that creates the session
-    resp = requests.post(
-        "https://your-backend.com/create-checkout",
-        json={"blocks": cart},
-        timeout=10,
-    )
-    return resp.json()["url"]
-# --------------------------------------------------
-#  ENGINE STUBS  (replace with real engine later)
-# --------------------------------------------------
-import zipfile
-
-def build_block(code: str, payload: dict) -> Path:
-    """Dummy engine: writes a small markdown file and returns its path."""
-    tmp = Path(tempfile.mktemp(suffix=".md"))
-    tmp.write_text(f"# Block {code}\n\nPayload: {payload}\n", encoding="utf-8")
-    return tmp
-
-def zip_block(md_path: Path, zip_path: Path) -> None:
-    """Create a zip containing the markdown."""
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(md_path, arcname=md_path.name)
-
-
+    """ Stub – returns fake url. """
+    return "https://stripe.com/docs/testing"
