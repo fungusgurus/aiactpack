@@ -11,6 +11,15 @@ from pathlib import Path
 
 import streamlit as st
 
+# ----------  TEST-MODE FLAG  ----------
+if "test_flag" not in st.session_state:
+    # first run – parse and store
+    st.session_state.test_flag = str(st.query_params.get("test", "")).lower() == "1"
+    if st.session_state.test_flag:
+        st.rerun()          # force immediate rerun so flag is visible below
+
+TEST_MODE = st.session_state.test_flag
+
 # ----  ENGINE STUBS  (move here until you plug in real engine.py) ----
 def build_block(code: str, payload: dict) -> Path:
     out = Path(tempfile.mktemp(suffix=".md"))
@@ -179,12 +188,11 @@ if submitted:
     st.success("All selected blocks complete.  Pay once below, then download.")
 
 # --------------------------------------------------
-#  DOWNLOAD / PAY AREA
-# --------------------------------------------------
-# --------------------------------------------------
 #  DOWNLOAD AREA
 # --------------------------------------------------
 st.write("TEST_MODE =", TEST_MODE)   # delete after confirm
+st.write("query_params =", dict(st.query_params))
+
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Downloads")
@@ -222,6 +230,7 @@ st.markdown(
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
 
 
 
