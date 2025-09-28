@@ -51,7 +51,7 @@ with st.form("aiactpack_wizard"):
             st.stop()
         payload = {**locals()}
         with st.spinner("Running 47-prompt chain…"):
-            zip_path = dummy_zip(payload)
+            zip_path = generate_pack(payload)
         with open(zip_path, "rb") as f:
             st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
         os.remove(zip_path)
@@ -87,4 +87,5 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 # ---------- FOOTER ----------
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
