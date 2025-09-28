@@ -1,6 +1,6 @@
 # home.py
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
-from engine import generate_pack
+from engine import build_block, zip_block
 
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
@@ -50,25 +50,47 @@ with st.form("aiactpack_wizard"):
             st.stop()
 
         payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
-        with st.spinner("Running selected prompts…"):
-            zip_path = generate_pack(payload)
-        st.success("Pack built (partial if rate-limit hit). Download below.")
+
+        # ---- build & zip block-by-block ----
+        blocks = []
+        if do_eu:   blocks += [f"A{i:02d}" for i in range(1, 21)]
+        if do_nist: blocks += [f"B{i:02d}" for i in range(1, 15)]
+        if do_iso:  blocks += [f"C{i:02d}" for i in range(1, 14)]
+
+        if not blocks:
+            st.error("No blocks selected.")
+            st.stop()
+
+        st.info("Building block-by-block. Downloads appear below.")
+
+        for code in blocks:
+            with st.spinner(f"Running {code} ..."):
+                md_path = build_block(code, payload)   # returns pathlib.Path
+            zip_path = zip_block(md_path)              # returns pathlib.Path
+            st.success(f"{code} complete")
+            # ---- DOWNLOAD BUTTON OUTSIDE FORM ----
+            st.download_button(
+                label=f"⬇️ {code} pack",
+                data=open(zip_path, "rb"),
+                file_name=zip_path.name,
+                mime="application/zip",
+                key=f"dl_{code}"
+            )
+
+        st.success("All selected blocks complete. Additional downloads appear below.")
 
 ##############################################################################
 # DOWNLOAD BUTTONS OUTSIDE FORM (no form error)
-##############################################################################
+########################################################################----------
 st.markdown("---")
-if st.session_state.get("last_zip"):
-    with open(st.session_state["last_zip"], "rb") as f:
-        st.download_button("⬇️ Download bundle", f, file_name="AIACTPACK.zip")
-else:
-    st.info("No pack generated yet – run the wizard above.")
+st.markdown("### 📦 Individual Block Downloads")
+st.info("You can also download the full bundle once all blocks are built.")
 
 ##############################################################################
 # PRICING SECTION
 ##############################################################################
 st.markdown("---")
-st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
+st.markdown('<a name="pricing"></a>', unsafe.allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -87,7 +109,6 @@ if st.session_state.get("do_eu") and st.session_state.get("do_nist") and st.sess
 ##############################################################################
 st.markdown("---")
 st.markdown("### 📞 Book a 15-min Expert Call")
-st.markdown("Choose a slot → receive Zoom link instantly.")
 st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="primary")
 
 ##############################################################################
