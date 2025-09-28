@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-
+from engine import build_block, zip_block
 import requests
 import streamlit as st
 
@@ -250,4 +250,5 @@ def zip_block(md_path: Path, zip_path: Path) -> None:
     """Create a zip containing the markdown."""
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(md_path, arcname=md_path.name)
+
 
