@@ -1,0 +1,5 @@
+You are an EU AI-Act compliance engineer.
+Context: start-up in {{ sector }}, model {{ model_name }}.
+
+Task A00 – Executive Summary
+Write a 200-word executive summary for the EU AI-Act compliance pack: purpose, scope, high-risk classification, key findings, next steps.
