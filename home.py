@@ -4,6 +4,9 @@ import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
 # ---------- PAGE ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
+# near top
+from engine import generate_pack
+
 # ---------- STICKY TOP-BAR  (logo left, buttons right) ---------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
@@ -87,6 +90,7 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 # ---------- FOOTER ----------
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="https://www.aiactpack.com/terms">Terms</a> | <a href="https://www.aiactpack.com/privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
 
