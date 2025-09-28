@@ -6,16 +6,26 @@ import openai
 ##############################################################################
 # LLM  (new client ≥ 1.0)
 ##############################################################################
-client = openai.OpenAI(api_key=os.getenv("OPENAI_KEY"))   # column 0
+import time
+from openai import RateLimitError
+
+client = openai.OpenAI(api_key=os.getenv("OPENAI_KEY"))
 
 def call_llm(prompt: str) -> str:
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-        max_tokens=1200
-    )
-    return response.choices[0].message.content
+    for attempt in range(1, 6):          # 5 attempts
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+                max_tokens=1200
+            )
+            return response.choices[0].message.content
+        except RateLimitError:
+            wait = 2 ** attempt           # exponential back-off
+            time.sleep(wait)
+    # last resort: return a stub so the pack still builds
+    return f"[Rate-limit hit – please verify manually] {prompt[:50]}..."
 ##############################################################################
 # PROMPT LOADER
 ##############################################################################
