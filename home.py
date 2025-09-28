@@ -15,7 +15,7 @@ st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h �
 ##############################################################################
 # BACK-DOOR DETECTION
 ##############################################################################
-backdoor = st.experimental_get_query_params().get("backdoor", [""])[0] == "1"
+backdoor = st.query_params.get("backdoor", "") == "1"
 
 ##############################################################################
 # 10-QUESTION WIZARD (with pick-your-blocks)
@@ -144,5 +144,6 @@ if st.session_state.get("do_eu") and st.session_state.get("do_nist") and st.sess
 # ---------- FOOTER ----------
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
