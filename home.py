@@ -184,6 +184,7 @@ if submitted:
 # --------------------------------------------------
 #  DOWNLOAD AREA
 # --------------------------------------------------
+st.write("TEST_MODE =", TEST_MODE)   # delete after confirm
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Downloads")
@@ -221,6 +222,7 @@ st.markdown(
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
 
 
 
