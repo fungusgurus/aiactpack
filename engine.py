@@ -61,6 +61,12 @@ def generate_pack(payload: dict) -> pathlib.Path:
     def write_block(name: str, content: str):
         (artefacts_dir / f"{name}.md").write_text(content, encoding="utf-8")
 
+    # ---- A00 Executive Summary (always if EU ticked) ----
+    if payload.get("do_eu"):
+        with st.spinner("A00 Executive Summary..."):
+            summary = call_llm("A00", Template(load_prompt("A00")).render(ctx=payload))
+        write_block("A00_Executive_Summary", summary)
+
     # ---- loop: stream each block ----
     for idx, code in enumerate(blocks, 1):
         progress.progress(idx / total)
