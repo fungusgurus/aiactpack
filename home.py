@@ -51,16 +51,19 @@ with st.form("aiactpack_wizard"):
 
         payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
         with st.spinner("Running selected prompts…"):
-            zip_path = generate_pack(payload)   # engine returns final path
+            zip_path = generate_pack(payload)
         st.success("Pack built (partial if rate-limit hit). Download below.")
 
-# ---------- DOWNLOAD BUTTONS OUTSIDE FORM ----------
-with st.container():
-    if st.session_state.get("last_zip"):
-        with open(st.session_state["last_zip"], "rb") as f:
-            st.download_button("⬇️ Download bundle", f, file_name="AIACTPACK.zip")
-    else:
-        st.info("No pack generated yet – run the wizard above.")
+##############################################################################
+# DOWNLOAD BUTTONS OUTSIDE FORM (no form error)
+##############################################################################
+st.markdown("---")
+if st.session_state.get("last_zip"):
+    with open(st.session_state["last_zip"], "rb") as f:
+        st.download_button("⬇️ Download bundle", f, file_name="AIACTPACK.zip")
+else:
+    st.info("No pack generated yet – run the wizard above.")
+
 ##############################################################################
 # PRICING SECTION
 ##############################################################################
@@ -92,5 +95,3 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
-
-
