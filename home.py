@@ -25,7 +25,7 @@ def create_stripe_checkout_session(cart: list[str]) -> str:
 # --------------------------------------------------------------
 
 # ----------  TEST-MODE BYPASS  ----------
-TEST_MODE = st.query_params.get("test", "") == "1"
+TEST_MODE = str(st.query_params.get("test", "")).lower() == "1"
 
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
@@ -220,5 +220,6 @@ st.markdown(
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
 
 
