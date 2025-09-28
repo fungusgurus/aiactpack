@@ -70,6 +70,9 @@ with st.form("aiactpack_wizard"):
                 zip_paths.append(zip_path)
         st.success("All selected blocks complete.")
 
+# ---------- INITIALISE LIST (survives reload) ----------
+zip_paths = st.session_state.get("zip_paths", [])
+
 # ---------- DOWNLOAD BUTTONS OUTSIDE FORM (no form error) ----------
 st.markdown("---")
 st.markdown("### 📦 Individual Block Downloads")
@@ -81,7 +84,6 @@ for zip_path in zip_paths:
         mime="application/zip",
         key=f"dl_{zip_path.stem}"
     )
-
 ##############################################################################
 # PRICING SECTION
 ##############################################################################
@@ -112,5 +114,6 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
 
