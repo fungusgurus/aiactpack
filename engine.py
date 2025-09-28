@@ -36,6 +36,7 @@ def generate_pack(payload: dict) -> pathlib.Path:
     artefacts_dir = tmpdir / "artefacts"
     artefacts_dir.mkdir(exist_ok=True)
 
+    # ---- decide which blocks to run ----
     blocks = []
     if payload.get("do_eu"):   blocks += [f"A{i:02d}" for i in range(1, 21)]
     if payload.get("do_nist"): blocks += [f"B{i:02d}" for i in range(1, 15)]
