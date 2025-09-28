@@ -111,5 +111,6 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 # FOOTER
 ##############################################################################
 st.markdown("---")
-st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe.allow_html=True)
+st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
+
 
