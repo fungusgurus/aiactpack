@@ -36,7 +36,7 @@ def call_llm(code: str, prompt: str) -> str:
     return f"[Rate-limit – verify manually] {code}"
 
 ##############################################################################
-# MASTER PACK BUILDER  (user-selected blocks only)
+# MASTER PACK BUILDER  (stream-after-every-block + partial-safe)
 ##############################################################################
 def generate_pack(payload: dict) -> pathlib.Path:
     stamp   = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -44,71 +44,62 @@ def generate_pack(payload: dict) -> pathlib.Path:
     artefacts_dir = tmpdir / "artefacts"
     artefacts_dir.mkdir(exist_ok=True)
 
+    # ---- decide which blocks to run ----
+    blocks = []
+    if payload.get("do_eu"):   blocks += [f"A{i:02d}" for i in range(1, 21)]
+    if payload.get("do_nist"): blocks += [f"B{i:02d}" for i in range(1, 15)]
+    if payload.get("do_iso"):  blocks += [f"C{i:02d}" for i in range(1, 14)]
+
+    if not blocks:
+        st.warning("No blocks selected – returning empty pack.")
+        return tmpdir / "EMPTY.zip"
+
+    total = len(blocks)
     progress = st.progress(0)
-    done     = 0
-    total    = 47   # only if user ticks all; we adjust later
 
-    # ---- 1. EU AI-Act (only if ticked) ----
-    if payload.get("do_eu"):
-        eu_md = "# EU AI Act Evidence\n\n";  eu_csv = []
-        for i in range(1, 21):
-            code = f"A{i:02d}"
-            with st.spinner(f"EU {code} ..."):
+    # ---- helper: write block immediately ----
+    def write_block(name: str, content: str):
+        (artefacts_dir / f"{name}.md").write_text(content, encoding="utf-8")
+
+    # ---- loop: stream each block ----
+    for idx, code in enumerate(blocks, 1):
+        progress.progress(idx / total)
+        with st.spinner(f"{code} ..."):
+            try:
                 resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
-            eu_md += f"\n## {code}\n\n{resp}\n"
-            eu_csv.append({"Clause": code, "Evidence": resp[:200] + "..."})
-            done += 1; progress.progress(done / 47)
-            time.sleep(10)   # stay under 60 requests / minute
-        (artefacts_dir / "01_EU_AI_Act.md").write_text(eu_md, encoding="utf-8")
-        with open(artefacts_dir / "01_EU_AI_Act.csv", "w", newline='', encoding="utf-8") as f:
-            csv.DictWriter(f, fieldnames=["Clause", "Evidence"]).writerows(eu_csv)
-        # EU Declaration
-        decl_tmpl = Template((TEMPLATES_DIR / "EU_declaration.md").read_text())
-        declaration = decl_tmpl.render(ctx=payload, date=datetime.datetime.utcnow().strftime("%d %B %Y"))
-        (artefacts_dir / "04_EU_Declaration_of_Conformity.md").write_text(declaration, encoding="utf-8")
+            except Exception as e:
+                resp = f"[Error – verify manually] {code}: {str(e)[:100]}"
+        write_block(code, resp)
 
-    # ---- 2. NIST AI RMF (only if ticked) ----
-    if payload.get("do_nist"):
-        nist_md = "# NIST AI RMF Evidence\n\n";  nist_csv = []
-        for i in range(1, 15):
-            code = f"B{i:02d}"
-            with st.spinner(f"NIST {code} ..."):
-                resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
-            nist_md += f"\n## {code}\n\n{resp}\n"
-            nist_csv.append({"SubCategory": code, "Evidence": resp[:200] + "..."})
-            done += 1; progress.progress(done / 47)
-            time.sleep(10)
-        (artefacts_dir / "02_NIST_AI_RMF.md").write_text(nist_md, encoding="utf-8")
-        with open(artefacts_dir / "02_NIST_AI_RMF.csv", "w", newline='', encoding="utf-8") as f:
-            csv.DictWriter(f, fieldnames=["SubCategory", "Evidence"]).writerows(nist_csv)
+        # ---- STREAM ZIP AFTER EVERY BLOCK ----
+        zip_path = tmpdir / f"AIACTPACK_partial_{code}.zip"
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file in artefacts_dir.rglob("*"):
+                zf.write(file, file.relative_to(tmpdir))
 
-    # ---- 3. ISO 42001 (only if ticked) ----
-    if payload.get("do_iso"):
-        iso_md = "# ISO 42001 Evidence\n\n";  iso_csv = []
-        for i in range(1, 14):
-            code = f"C{i:02d}"
-            with st.spinner(f"ISO {code} ..."):
-                resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
-            iso_md += f"\n## {code}\n\n{resp}\n"
-            iso_csv.append({"Control": code, "Evidence": resp[:200] + "..."})
-            done += 1; progress.progress(done / 47)
-            time.sleep(10)
-        (artefacts_dir / "03_ISO_42001.md").write_text(iso_md, encoding="utf-8")
-        with open(artefacts_dir / "03_ISO_42001.csv", "w", newline='', encoding="utf-8") as f:
-            csv.DictWriter(f, fieldnames=["Control", "Evidence"]).writerows(iso_csv)
+        # ---- OFFER DOWNLOAD NOW ----
+        st.success(f"Block {code} done – download even if later blocks fail.")
+        with open(zip_path, "rb") as f:
+            st.download_button(
+                label=f"⬇️ Download up to {code}",
+                data=f,
+                file_name=zip_path.name,
+                mime="application/zip",
+                key=f"dl_{code}"   # unique key per block
+            )
 
-    # ---- 4. ZIP & STREAM (partial-safe) ----
-    zip_path = tmpdir / f"AIACTPACK_{stamp}.zip"
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    # ---- final full zip ----
+    final_zip = tmpdir / f"AIACTPACK_{stamp}.zip"
+    with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         for file in artefacts_dir.rglob("*"):
             zf.write(file, file.relative_to(tmpdir))
 
-    st.success("Pack built (partial if rate-limit hit). Download below.")
-    with open(zip_path, "rb") as f:
+    st.success("All selected blocks complete. Final download below.")
+    with open(final_zip, "rb") as f:
         st.download_button(
-            label="⬇️ Download compliance bundle",
+            label="⬇️ Final bundle",
             data=f,
-            file_name=zip_path.name,
+            file_name=final_zip.name,
             mime="application/zip"
         )
-    return zip_path
+    return final_zip
