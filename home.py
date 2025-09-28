@@ -17,7 +17,7 @@ TEST_MODE = any(
 )
 
 # ----------  ENGINE STUBS  (replace with real engine later) ----------
-
+from engine import build_block, zip_block
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
@@ -207,4 +207,5 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
 
