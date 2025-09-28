@@ -4,19 +4,18 @@ from jinja2 import Template
 import openai
 
 ##############################################################################
-# LLM  (swap  provider  here)
+# LLM  (new client ≥ 1.0)
 ##############################################################################
-openai.api_key = os.getenv("OPENAI_KEY")   # add in Streamlit Cloud → Secrets
+client = openai.OpenAI(api_key=os.getenv("OPENAI_KEY"))   # column 0
 
 def call_llm(prompt: str) -> str:
-    resp = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
         max_tokens=1200
     )
-    return resp.choices[0].message.content
-
+    return response.choices[0].message.content
 ##############################################################################
 # PROMPT LOADER
 ##############################################################################
