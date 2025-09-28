@@ -108,42 +108,48 @@ with st.form("aiactpack_wizard"):
                     )
 
         st.success("All selected blocks complete.")
+# ---------- INITIALISE LIST (survives reload) ----------
+if "zip_paths" not in st.session_state:
+    st.session_state["zip_paths"] = []
 
-# ---------- DOWNLOAD BUTTONS OUTSIDE FORM (no form error) ----------
-st.markdown("---")
-st.markdown("### 📦 Downloads")
-if backdoor:
-    st.success("🎁 Back-door enabled – all downloads are free.")
-else:
-    st.info("Pay €50 per block above, or use the bundle links below.")
+# ---------- BUILD & SHOW DOWNLOADS (outside form) ----------
+if submitted and blocks:
+    st.markdown("---")
+    st.markdown("### 📦 Individual Block Downloads")
+    for code in blocks:
+        with st.spinner(f"Running {code} ..."):
+            md_path = build_block(code, payload)
+            zip_path = zip_block(md_path)
+            st.session_state["zip_paths"].append(zip_path)
 
-for zip_path in zip_paths:
-    st.download_button(
-        label=f"⬇️ {zip_path.stem}",
-        data=open(zip_path, "rb"),
-        file_name=zip_path.name,
-        mime="application/zip",
-        key=f"dl_{zip_path.stem}_final"
-    )
+        # ---- BUTTON APPEARS IMMEDIATELY ----
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.download_button(
+                label=f"⬇️ {code} (preview)",
+                data=open(zip_path, "rb"),
+                file_name=zip_path.name,
+                mime="application/zip",
+                key=f"dl_{code}"
+            )
+        with col2:
+            if backdoor:
+                st.success("🎁 Back-door enabled – free download below")
+            else:
+                st.link_button(
+                    label=f"Pay €50 – {code}",
+                    url=f"https://buy.stripe.com/xxxxx50?client_reference_id={code}",
+                    use_container_width=True
+                )
 
-# ---------- BUNDLE LINKS ----------
-st.markdown("---")
-st.markdown("### 📦 Certified Bundles")
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.link_button("Pay €497 – EU Bundle", "https://buy.stripe.com/xxxxx497", use_container_width=True)
-with c2:
-    st.link_button("Pay €497 – NIST Bundle", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
-with c3:
-    st.link_button("Pay €497 – ISO Bundle", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
+    st.success("All selected blocks complete.")
 
-if st.session_state.get("do_eu") and st.session_state.get("do_nist") and st.session_state.get("do_iso"):
-    st.markdown("🎁 **Bundle bonus:** all three certified bundles for €1 397 (save €94)")
+# ---------- FINAL FULL BUNDLE (optional) ----------
+if st.session_state.get("zip_paths"):
+    st.markdown("---")
+    st.markdown("### 📦 Full Bundle (paid)")
     st.link_button("Pay €1 397 – Complete Certified Bundle", "https://buy.stripe.com/xxxxx1397", type="primary", use_container_width=True)
 
 # ---------- FOOTER ----------
 st.markdown("---")
-st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
-
-
-
+st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe.allow_html=True)
