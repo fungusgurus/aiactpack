@@ -1,6 +1,6 @@
 # home.py
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
-from engine import generate_pack   # real engine
+from engine import generate_pack
 
 ##############################################################################
 # PAGE CONFIG
@@ -34,81 +34,41 @@ st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 ##############################################################################
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
-# ---------- 10-QUESTION WIZARD (with help & dropdowns) ----------
-col1, col2 = st.columns(2)
-with col1:
-    sector = st.selectbox(
-        "Industry sector *",
-        ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"],
-        help="Pick the market you operate in – determines high-risk classification under EU AI-Act Annex III."
-    )
+##############################################################################
+# 10-QUESTION WIZARD (with help & dropdowns)
+##############################################################################
+st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
+st.markdown("### 🧭 10-Question Compliance Wizard")
+with st.form("aiactpack_wizard"):
+    col1, col2 = st.columns(2)
+    with col1:
+        sector = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"], help="Pick the market you operate in – determines high-risk classification under EU AI-Act Annex III.")
+        model_name = st.text_input("Model trade name *", placeholder="CreditGPT-3", help="Public-facing product name (used in CE-marking declaration).")
+        n_users = st.number_input("Expected EU users *", min_value=0, max_value=50_000_000, value=5_000, step=1_000, help=">10 000 users triggers mandatory Notified-Body audit.")
+        high_risk = st.selectbox("High-risk Annex III use-case *", ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"], help="If you pick anything except 'None' the system is HIGH-RISK under EU AI-Act.")
+        data_modal = st.multiselect("Data modalities", ["Text", "Image", "Tabular", "Audio", "Video"], default=["Text"], help="Which data types does the model ingest?  Affects bias tests & cyber-security controls.")
+    with col2:
+        deploy_env = st.selectbox("Deployment environment", ["AWS", "Azure", "GCP", "On-prem", "Hybrid"], help="Cloud vs. on-prem determines encryption & supply-chain evidence required.")
+        ce_mark = st.selectbox("Already CE-marked HW/SW ?", ["Yes", "No", "Partial"], help="If hardware is already CE-marked you only need a delta-assessment.")
+        target_mkt = st.multiselect("Target jurisdictions", ["EU", "UK", "USA", "Canada", "APAC"], default=["EU"], help="Extra jurisdictions add extra rules (UK White-Paper, USA NIST, etc.).")
+        sandbox = st.selectbox("Participated in EU AI sandbox ?", ["Yes", "No"], help="Sandbox exit gives you a lighter conformity route.")
+        model_family = st.selectbox("Model family", ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"], help="Transformer vs. tree-based = different adversarial tests & metrics.")
+    data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv", help="List every source – regulators check representativeness & rights.")
 
-    model_name = st.text_input(
-        "Model trade name *",
-        placeholder="CreditGPT-3",
-        help="Public-facing product name (used in CE-marking declaration)."
-    )
+    # ---------- GENERATE BUTTON ----------
+    submitted = st.form_submit_button("Generate compliance pack →", type="primary")
+    if submitted:
+        if not model_name or not data_sources:
+            st.error("Please complete mandatory fields.")
+            st.stop()
+        payload = {**locals()}
+        with st.spinner("Running 47-prompt chain…"):
+            zip_path = generate_pack(payload)
+        with open(zip_path, "rb") as f:
+            st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
+        os.remove(zip_path)
+        st.success("Check your email for the invoice. Need more? See pricing below.")
 
-    n_users = st.number_input(
-        "Expected EU users *",
-        min_value=0,
-        max_value=50_000_000,
-        value=5_000,
-        step=1_000,
-        help=">10 000 users triggers mandatory Notified-Body audit."
-    )
-
-    high_risk = st.selectbox(
-        "High-risk Annex III use-case *",
-        ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"],
-        help="If you pick anything except 'None' the system is HIGH-RISK under EU AI-Act."
-    )
-
-    data_modal = st.multiselect(
-        "Data modalities",
-        ["Text", "Image", "Tabular", "Audio", "Video"],
-        default=["Text"],
-        help="Which data types does the model ingest?  Affects bias tests & cyber-security controls."
-    )
-
-with col2:
-    deploy_env = st.selectbox(
-        "Deployment environment",
-        ["AWS", "Azure", "GCP", "On-prem", "Hybrid"],
-        help="Cloud vs. on-prem determines encryption & supply-chain evidence required."
-    )
-
-    ce_mark = st.selectbox(
-        "Already CE-marked HW/SW ?",
-        ["Yes", "No", "Partial"],
-        help="If hardware is already CE-marked you only need a delta-assessment."
-    )
-
-    target_mkt = st.multiselect(
-        "Target jurisdictions",
-        ["EU", "UK", "USA", "Canada", "APAC"],
-        default=["EU"],
-        help="Extra jurisdictions add extra rules (UK White-Paper, USA NIST, etc.)."
-    )
-
-    sandbox = st.selectbox(
-        "Participated in EU AI sandbox ?",
-        ["Yes", "No"],
-        help="Sandbox exit gives you a lighter conformity route."
-    )
-
-    model_family = st.selectbox(
-        "Model family",
-        ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"],
-        help="Transformer vs. tree-based = different adversarial tests & metrics."
-    )
-
-# free-text kept only where unavoidable
-data_sources = st.text_area(
-    "Training data sources (1 per line) *",
-    placeholder="wikimedia.org\ninternal-2022-2024.csv",
-    help="List every source – regulators check representativeness & rights."
-)
 ##############################################################################
 # PRICING SECTION
 ##############################################################################
@@ -136,4 +96,3 @@ st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="p
 ##############################################################################
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
-
