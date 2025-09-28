@@ -19,18 +19,7 @@ TEST_MODE = any(
 )
 
 # ----------  ENGINE STUBS  (replace with real engine later) ----------
-def build_block(code: str, payload: dict) -> Path:
-    out = Path(tempfile.mktemp(suffix=".md"))
-    out.write_text(f"# {code}\n\nPayload: {payload}\n", encoding="utf-8")
-    return out
-
-def zip_block(md_path: Path) -> Path:
-    with zipfile.ZipFile(md_path.with_suffix(".zip"), "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(md_path, md_path.name)
-    return md_path.with_suffix(".zip")
-
-def create_stripe_checkout_session(cart: list[str]) -> str:
-    return "https://stripe.com/docs/testing"  # stub
+from engine import build_block, zip_block
 
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
@@ -238,4 +227,5 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
 
