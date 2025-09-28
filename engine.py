@@ -77,3 +77,8 @@ def generate_pack(payload: dict) -> pathlib.Path:
         for file in artefacts_dir.rglob("*"):
             zf.write(file, file.relative_to(tmpdir))
     return zip_path
+
+    # engine.py  (last  line)
+    def generate_pack(payload: dict) -> pathlib.Path:
+    ...   # your existing code
+    return zip_path
