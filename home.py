@@ -1,8 +1,9 @@
-# home.py  –  final drop-in version
-# 1.  TEST-MODE  with  ?test=1  (any case)
-# 2.  Individual-prompt check-boxes  ALWAYS  visible once that mode is chosen
-# 3.  Individual-bundle (€497)  waits for  EU / NIST / ISO  choice
-# 4.  Stubs at top so NameError disappears
+# home.py  –  single-file replacement
+# 1.  A00-Executive Summary added (first item in EU bundle & picker)
+# 2.  Individual bundle → ONE zip  (all chosen blocks)
+# 3.  Complete bundle  → ONE zip  (all A+B+C)
+# 4.  Individual prompts → ONE zip (all checked blocks)
+# 5.  Test-mode with ?test=1  (case-insensitive)
 # --------------------------------------------------
 import os
 import shutil
@@ -17,7 +18,19 @@ TEST_MODE = any(
 )
 
 # ----------  ENGINE STUBS  (replace with real engine later) ----------
-from engine import build_block, zip_block
+def build_block(code: str, payload: dict) -> Path:
+    out = Path(tempfile.mktemp(suffix=".md"))
+    out.write_text(f"# {code}\n\nPayload: {payload}\n", encoding="utf-8")
+    return out
+
+def zip_block(md_path: Path) -> Path:
+    with zipfile.ZipFile(md_path.with_suffix(".zip"), "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, md_path.name)
+    return md_path.with_suffix(".zip")
+
+def create_stripe_checkout_session(cart: list[str]) -> str:
+    return "https://stripe.com/docs/testing"  # stub
+
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
@@ -90,14 +103,21 @@ with st.form("aiactpack_wizard"):
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
         cols = st.columns(3)
+        # A00 first
+        with cols[0]:
+            if st.checkbox("A00 – Executive Summary (€50)", value=False, key="A00"):
+                selected_individual.append("A00")
+        # A01-A20
         for i in range(1, 21):
             with cols[(i - 1) % 3]:
                 if st.checkbox(f"A{i:02d} (€50)", value=False, key=f"A{i:02d}"):
                     selected_individual.append(f"A{i:02d}")
+        # B01-B14
         for i in range(1, 15):
             with cols[(i - 1) % 3]:
                 if st.checkbox(f"B{i:02d} (€50)", value=False, key=f"B{i:02d}"):
                     selected_individual.append(f"B{i:02d}")
+        # C01-C13
         for i in range(1, 14):
             with cols[(i - 1) % 3]:
                 if st.checkbox(f"C{i:02d} (€50)", value=False, key=f"C{i:02d}"):
@@ -141,53 +161,64 @@ if submitted:
         blocks = selected_individual
     elif mode == "Individual bundle (€497)":
         bundle_blocks = {
-            "EU AI-Act":   [f"A{i:02d}" for i in range(1, 21)],
+            "EU AI-Act":   ["A00"] + [f"A{i:02d}" for i in range(1, 21)],
             "NIST AI RMF": [f"B{i:02d}" for i in range(1, 15)],
             "ISO 42001":   [f"C{i:02d}" for i in range(1, 14)],
         }
         blocks = bundle_blocks[bundle_choice]
     elif mode == "Complete bundle (€1 397)":
-        blocks = [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
+        blocks = ["A00"] + [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
 
     if not blocks:
         st.error("No blocks selected.")
         st.stop()
 
-    # build & zip
+    # build all blocks into ONE zip
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
-        zip_paths: list[Path] = []
+        built_files: list[Path] = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
                 md_path = build_block(code, payload)
-                zip_path = zip_block(md_path)
-                zip_paths.append(zip_path)
-        persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
-        saved = [shutil.copy2(z, persist_dir / z.name) for z in zip_paths]
+                built_files.append(md_path)
 
-    st.session_state.zips = saved
+        # pack everything into single zip
+        pack_name = (
+            "Complete_Bundle" if mode == "Complete bundle (€1 397)" else
+            f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle (€497)" else
+            "Individual_Prompts"
+        ) + f"_{int(time.time())}.zip"
+        final_zip = tmpdir_path / pack_name
+        with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for bf in built_files:
+                zf.write(bf, bf.name)
+
+        persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
+        saved_zip = shutil.copy2(final_zip, persist_dir / final_zip.name)
+
+    st.session_state.zips = [saved_zip]   # single zip
     st.session_state.cart = blocks
-    st.success("All selected blocks complete.  Pay once below, then download.")
+    st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
 # --------------------------------------------------
 #  DOWNLOAD / PAY AREA
 # --------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
-    st.markdown("### 📦 Downloads")
+    st.markdown("### 📦 Download")
 
     if TEST_MODE:
-        st.success("🎁 TEST MODE – all downloads are free.")
-        for z in st.session_state.zips:
-            st.download_button(
-                label=f"⬇️ {z.stem}",
-                data=z.read_bytes(),
-                file_name=z.name,
-                mime="application/zip",
-                key=f"dl_{z.stem}",
-            )
+        st.success("🎁 TEST MODE – download is free.")
+        z = st.session_state.zips[0]
+        st.download_button(
+            label=f"⬇️ {z.name}",
+            data=z.read_bytes(),
+            file_name=z.name,
+            mime="application/zip",
+            key="final_zip",
+        )
     else:
-        st.info("Pay once, then download every block instantly.")
+        st.info("Pay once, then download the full pack.")
         if st.button("Create secure checkout session", type="primary"):
             ck_url = create_stripe_checkout_session(st.session_state.cart)
             st.session_state.checkout_url = ck_url
@@ -206,6 +237,3 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
-
-
-
