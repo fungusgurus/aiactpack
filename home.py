@@ -20,6 +20,8 @@ def build_block(code: str, payload: dict) -> Path:
 def zip_block(md_path: Path, zip_path: Path) -> None:
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.write(md_path, md_path.name)
+def create_stripe_checkout_session(cart: list[str]) -> str:
+    return "https://stripe.com/docs/testing"
 # --------------------------------------------------------------
 
 # ----------  TEST-MODE BYPASS  ----------
@@ -218,4 +220,5 @@ st.markdown(
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
 
