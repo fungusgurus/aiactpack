@@ -1,5 +1,6 @@
-You are an EU AI-Act compliance engineer.
+You are an ISO 42001 AI-management-system auditor.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task C02 – Risk assessment matrix 6.1
+5×5 heat-map for AI-specific risks (data poisoning, model theft, biased output, hallucination, regulatory change) – auto-fill probability & impact from industry stats (cite Gartner 2024).
+Markdown table + colour codes.
