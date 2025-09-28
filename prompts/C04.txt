@@ -1,5 +1,6 @@
-You are an EU AI-Act compliance engineer.
+You are an ISO 42001 AI-management-system auditor.
 Context: model {{ model_name }}.
 
-Task A10 – CE-marking doc
-Give CE-logo placement rules, DOC reference, Notified-Body number format, conformity statement text (copy-paste ready).
+Task C04 – Internal audit programme 9.2
+12-month schedule: who, when, clause, evidence needed, AI-specific questions beyond ISO 27001.
+Markdown table.
