@@ -1,30 +1,22 @@
-# home.py
-"""
-AI Act Pack™ – fixed & hardened edition
-- Removes client-side back-door
-- Server-side Stripe Checkout sessions (webhook required)
-- Cleans up temp files
-- Keeps UX identical from the user’s point of view
-"""
-
-from __future__ import annotations
-
+# home.py  (test-friendly edition)
 import os
 import shutil
 import tempfile
-from datetime import datetime
 from pathlib import Path
 
+import requests
 import streamlit as st
 
-# --------------  PAGE CONFIG  --------------
-st.set_page_config(
-    page_title="AI Act Pack™",
-    page_icon="⚖️",
-    layout="centered",
-)
+# --------------------------------------------------
+# 0.  BACK-DOOR FOR LOCAL TESTING
+# --------------------------------------------------
+TEST_MODE = st.query_params.get("test", "") == "1"
 
-# --------------  CSS / TOP BAR  --------------
+# --------------------------------------------------
+# 1.  PAGE DECOR
+# --------------------------------------------------
+st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
+
 st.html(
     r"""
 <style>
@@ -54,118 +46,84 @@ st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
-# --------------  SESSION STATE  --------------
+# --------------------------------------------------
+# 2.  SESSION STATE
+# --------------------------------------------------
 if "zips" not in st.session_state:
     st.session_state.zips: list[Path] = []
 if "cart" not in st.session_state:
-    st.session_state.cart: list[str] = []  # block codes user wants
+    st.session_state.cart: list[str] = []
 if "checkout_url" not in st.session_state:
     st.session_state.checkout_url: str | None = None
 
-
-# --------------  10-QUESTION WIZARD  --------------
+# --------------------------------------------------
+# 3.  10-QUESTION WIZARD
+# --------------------------------------------------
 st.markdown("### 🧭 10-Question Compliance Wizard")
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
-        sector = st.selectbox(
-            "Industry sector *",
-            ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"],
-            help="Pick the market you operate in – determines high-risk classification under EU AI-Act Annex III.",
-        )
-        model_name = st.text_input(
-            "Model trade name *",
-            placeholder="CreditGPT-3",
-            help="Public-facing product name (used in CE-marking declaration).",
-        )
-        n_users = st.number_input(
-            "Expected EU users *",
-            min_value=0,
-            max_value=50_000_000,
-            value=5_000,
-            step=1_000,
-            help=">10 000 users triggers mandatory Notified-Body audit.",
-        )
-        high_risk = st.selectbox(
-            "High-risk Annex III use-case *",
-            ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"],
-            help="If you pick anything except 'None' the system is HIGH-RISK under EU AI-Act.",
-        )
-        data_modal = st.multiselect(
-            "Data modalities",
-            ["Text", "Image", "Tabular", "Audio", "Video"],
-            default=["Text"],
-            help="Which data types does the model ingest?  Affects bias tests & cyber-security controls.",
-        )
+        sector = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
+        model_name = st.text_input("Model trade name *", placeholder="CreditGPT-3")
+        n_users = st.number_input("Expected EU users *", min_value=0, max_value=50_000_000, value=5_000, step=1_000)
+        high_risk = st.selectbox("High-risk Annex III use-case *", ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"])
+        data_modal = st.multiselect("Data modalities", ["Text", "Image", "Tabular", "Audio", "Video"], default=["Text"])
     with col2:
-        deploy_env = st.selectbox(
-            "Deployment environment",
-            ["AWS", "Azure", "GCP", "On-prem", "Hybrid"],
-            help="Cloud vs. on-prem determines encryption & supply-chain evidence required.",
-        )
-        ce_mark = st.selectbox(
-            "Already CE-marked HW/SW ?",
-            ["Yes", "No", "Partial"],
-            help="If hardware is already CE-marked you only need a delta-assessment.",
-        )
-        target_mkt = st.multiselect(
-            "Target jurisdictions",
-            ["EU", "UK", "USA", "Canada", "APAC"],
-            default=["EU"],
-            help="Extra jurisdictions add extra rules (UK White-Paper, USA NIST, etc.).",
-        )
-        sandbox = st.selectbox(
-            "Participated in EU AI sandbox ?",
-            ["Yes", "No"],
-            help="Sandbox exit gives you a lighter conformity route.",
-        )
-        model_family = st.selectbox(
-            "Model family",
-            ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"],
-            help="Transformer vs. tree-based = different adversarial tests & metrics.",
-        )
+        deploy_env = st.selectbox("Deployment environment", ["AWS", "Azure", "GCP", "On-prem", "Hybrid"])
+        ce_mark = st.selectbox("Already CE-marked HW/SW ?", ["Yes", "No", "Partial"])
+        target_mkt = st.multiselect("Target jurisdictions", ["EU", "UK", "USA", "Canada", "APAC"], default=["EU"])
+        sandbox = st.selectbox("Participated in EU AI sandbox ?", ["Yes", "No"])
+        model_family = st.selectbox("Model family", ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"])
 
-    data_sources = st.text_area(
-        "Training data sources (1 per line) *",
-        placeholder="wikimedia.org\ninternal-2022-2024.csv",
-        help="List every source – regulators check representativeness & rights.",
-    )
+    data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---------- MODE ----------
+    # ---- MODE ----
     mode = st.radio(
         "Select purchase mode:",
         ["Individual prompts (€50 each)", "Individual bundle (€497)", "Complete bundle (€1 397)"],
         help="Pay only for what you need.",
     )
 
-    # ---------- SUBMIT ----------
+    bundle_choice: str | None = None
+    if mode == "Individual bundle (€497)":
+        bundle_choice = st.radio(
+            "Which bundle do you need?",
+            ["EU AI-Act", "NIST AI RMF", "ISO 42001"],
+            horizontal=True,
+            help="Each bundle contains the prompts required for that framework.",
+        )
+
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
-# --------------  POST-SUBMIT LOGIC  --------------
+# --------------------------------------------------
+# 4.  POST-SUBMIT
+# --------------------------------------------------
 if submitted:
     if not model_name or not data_sources:
         st.error("Please complete mandatory fields.")
         st.stop()
 
-    # Build minimal payload
     payload = {
-        "sector": sector,
-        "model_name": model_name,
-        "n_users": n_users,
-        "high_risk": high_risk,
-        "data_modal": data_modal,
-        "deploy_env": deploy_env,
-        "ce_mark": ce_mark,
-        "target_mkt": target_mkt,
-        "sandbox": sandbox,
-        "model_family": model_family,
-        "data_sources": data_sources,
+        k: v
+        for k, v in locals().items()
+        if k
+        in {
+            "sector",
+            "model_name",
+            "n_users",
+            "high_risk",
+            "data_modal",
+            "deploy_env",
+            "ce_mark",
+            "target_mkt",
+            "sandbox",
+            "model_family",
+            "data_sources",
+        }
     }
 
-    # Decide which blocks
     blocks: list[str] = []
     if mode == "Individual prompts (€50 each)":
-        st.markdown("### 📋 Select individual prompts")
         for i in range(1, 21):
             if st.checkbox(f"A{i:02d} (€50)", value=False):
                 blocks.append(f"A{i:02d}")
@@ -176,7 +134,12 @@ if submitted:
             if st.checkbox(f"C{i:02d} (€50)", value=False):
                 blocks.append(f"C{i:02d}")
     elif mode == "Individual bundle (€497)":
-        blocks = [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
+        bundle_blocks = {
+            "EU AI-Act": [f"A{i:02d}" for i in range(1, 21)],
+            "NIST AI RMF": [f"B{i:02d}" for i in range(1, 15)],
+            "ISO 42001": [f"C{i:02d}" for i in range(1, 14)],
+        }
+        blocks = bundle_blocks[bundle_choice]
     elif mode == "Complete bundle (€1 397)":
         blocks = [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
 
@@ -184,56 +147,54 @@ if submitted:
         st.error("No blocks selected.")
         st.stop()
 
-    # Build blocks & zip
-    zip_paths: list[Path] = []
+    # Build
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
+        zip_paths: list[Path] = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
-                # assume engine.build_block returns Path to markdown
-                md_path = build_block(code, payload)
+                md_path = build_block(code, payload)  # your engine
                 zip_path = tmpdir_path / f"{code}.zip"
-                zip_block(md_path, zip_path)  # write zip
+                zip_block(md_path, zip_path)
                 zip_paths.append(zip_path)
 
-        # Persist zips outside temp dir
         persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
-        saved = []
-        for src in zip_paths:
-            dst = persist_dir / src.name
-            shutil.copy2(src, dst)
-            saved.append(dst)
+        saved = [shutil.copy2(z, persist_dir / z.name) for z in zip_paths]
 
     st.session_state.zips = saved
     st.session_state.cart = blocks
-    st.success("All selected blocks complete.  Click the green button below to pay and download.")
+    st.success("All selected blocks complete.  Pay once below, then download.")
 
-# --------------  DOWNLOAD / PAY  --------------
+# --------------------------------------------------
+# 5.  DOWNLOAD / PAY AREA
+# --------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Downloads")
-    st.info("Pay once, then download every block instantly.")
 
-    # Single Stripe Checkout (server-side)
-    if st.button("Create secure checkout session", type="primary"):
-        # YOUR_ENDPOINT should create the Stripe session and return {"url": "https://checkout.stripe.com/..."}
-        resp_create_session = ...
-        st.session_state.checkout_url = resp_create_session.get("url")
+    if TEST_MODE:
+        st.success("🎁 TEST MODE – all downloads are free.")
+        for z in st.session_state.zips:
+            st.download_button(
+                label=f"⬇️ {z.stem}",
+                data=z.read_bytes(),
+                file_name=z.name,
+                mime="application/zip",
+                key=f"dl_{z.stem}",
+            )
+    else:
+        st.info("Pay once, then download every block instantly.")
+        if st.button("Create secure checkout session", type="primary"):
+            # stub: replace with your backend endpoint that creates Stripe Checkout
+            ck_url = create_stripe_checkout_session(st.session_state.cart)
+            st.session_state.checkout_url = ck_url
 
-    if st.session_state.checkout_url:
-        st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
+        if st.session_state.checkout_url:
+            st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
 
-    # Preview downloads (optional, max 3 per IP to avoid abuse)
-    for z in st.session_state.zips[:3]:
-        st.download_button(
-            label=f"⬇️ {z.stem} (preview)",
-            data=z.read_bytes(),
-            file_name=z.name,
-            mime="application/zip",
-            key=f"prev_{z.stem}",
-        )
-
-# --------------  FOOTER  --------------
+# --------------------------------------------------
+# 6.  FOOTER
+# --------------------------------------------------
 st.markdown("---")
 st.markdown(
     '<div style="text-align:center;font-size:0.9rem;color:#777;">'
@@ -243,3 +204,33 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
+# --------------------------------------------------
+# 7.  STUBS (replace with real engine + Stripe webhook)
+# --------------------------------------------------
+def build_block(code: str, payload: dict) -> Path:
+    """Dummy engine: writes a small markdown file and returns its path."""
+    tmp = Path(tempfile.mktemp(suffix=".md"))
+    tmp.write_text(f"# Block {code}\n\nPayload: {payload}\n", encoding="utf-8")
+    return tmp
+
+
+def zip_block(md_path: Path, zip_path: Path) -> None:
+    """Create a zip containing the markdown."""
+    import zipfile
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, arcname=md_path.name)
+
+
+def create_stripe_checkout_session(cart: list[str]) -> str:
+    """Stub.  Returns a fake URL if STRIPE_SECRET_KEY missing."""
+    if not os.getenv("STRIPE_SECRET_KEY"):
+        return "https://stripe.com/docs/testing"
+    # Real implementation: POST to your backend that creates the session
+    resp = requests.post(
+        "https://your-backend.com/create-checkout",
+        json={"blocks": cart},
+        timeout=10,
+    )
+    return resp.json()["url"]
