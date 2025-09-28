@@ -2,42 +2,22 @@
 import streamlit as st, os, tempfile, pathlib, datetime, zipfile, json
 from engine import generate_pack
 
-##############################################################################
-# PAGE CONFIG
-##############################################################################
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
 ##############################################################################
-# STICKY TOP-BAR (logo left, buttons right)
+# STICKY TOP-BAR
 ##############################################################################
 st.html(r"""
-<style>
-header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.15);}
-.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-group{display:flex;align-items:center;gap:.75rem}.main{padding-top:80px}
-</style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
-    <span class="brand-txt">AI Act Pack™</span>
-  </div>
-  <div class="nav-group">
-    <a href="https://buy.stripe.com/xxxxx497" target="_blank" style="background:#ffffff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a>
-    <a href="https://buy.stripe.com/xxxxx1997" target="_blank" style="background:#ffffff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 997</a>
-    <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
-  </div>
-</div>
+<style>header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-group{display:flex;gap:.75rem}.main{padding-top:80px}</style>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><a href="https://buy.stripe.com/xxxxx497" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a><a href="https://buy.stripe.com/xxxxx1997" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 997</a><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
 """)
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-##############################################################################
-# HEADLINE
-##############################################################################
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
 ##############################################################################
 # 10-QUESTION WIZARD (with pick-your-blocks)
 ##############################################################################
-st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
@@ -76,57 +56,34 @@ with st.form("aiactpack_wizard"):
         with st.spinner("Running selected prompts…"):
             zip_path = generate_pack(payload)
         st.success("Pack built (partial if rate-limit hit). Download below.")
-        # ---- DOWNLOAD BUTTONS OUTSIDE FORM ----
-        with open(zip_path, "rb") as f:
-            st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
-        os.remove(zip_path)
-        st.success("Check your email for the invoice. Need more? See pricing below.")
 
 ##############################################################################
-# DYNAMIC PRICING (reads selected blocks)
+# DOWNLOAD BUTTONS OUTSIDE FORM (no form error)
 ##############################################################################
 st.markdown("---")
-st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
+if st.session_state.get("last_zip"):
+    with open(st.session_state["last_zip"], "rb") as f:
+        st.download_button("⬇️ Download bundle", f, file_name="AIACTPACK.zip")
+else:
+    st.info("No pack generated yet – run the wizard above.")
+
+##############################################################################
+# PRICING SECTION
+##############################################################################
+st.markdown("---")
+st.markdown('<a name="pricing"></a>', unsafe.allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
-
-# ---- calculate price ----
-base_prices = {"do_eu": 497, "do_nist": 497, "do_iso": 497}
-total_usd   = sum(base_prices[k] for k in ("do_eu", "do_nist", "do_iso") if st.session_state.get(k, False))
-if total_usd == 0:
-    total_usd = 1497   # default full pack if nothing selected
-
-# ---- choose blocks again (mirror wizard) ----
-st.markdown("### 🧮 Select blocks to purchase")
 c1, c2, c3 = st.columns(3)
 with c1:
-    buy_eu = st.checkbox("EU AI-Act   €497", value=st.session_state.get("do_eu", True))
+    st.link_button("Pay €497 – EU", "https://buy.stripe.com/xxxxx497", use_container_width=True)
 with c2:
-    buy_nist = st.checkbox("NIST RMF   €497", value=st.session_state.get("do_nist", True))
+    st.link_button("Pay €497 – NIST", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
 with c3:
-    buy_iso = st.checkbox("ISO 42001   €497", value=st.session_state.get("do_iso", True))
+    st.link_button("Pay €497 – ISO", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
 
-total_checkout = 497 * (buy_eu + buy_nist + buy_iso)   # True = 1
-
-# ---- PAY NOW BUTTONS (Stripe) ----
-if total_checkout == 0:
-    st.info("Select at least one block to see payment links.")
-else:
-    st.markdown(f"### Total: **€{total_checkout}**")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if buy_eu:
-            st.link_button("Pay €497 – EU", "https://buy.stripe.com/xxxxx497", use_container_width=True)
-    with c2:
-        if buy_nist:
-            st.link_button("Pay €497 – NIST", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
-    with c3:
-        if buy_iso:
-            st.link_button("Pay €497 – ISO", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
-
-    # ---- BUNDLE DISCOUNT (optional) ----
-    if buy_eu and buy_nist and buy_iso:
-        st.markdown("🎁 **Bundle bonus:** all three for €1 497 (save €492)")
-        st.link_button("Pay €1 497 – Full Pack", "https://buy.stripe.com/xxxxx1497", type="primary", use_container_width=True)
+if st.session_state.get("do_eu") and st.session_state.get("do_nist") and st.session_state.get("do_iso"):
+    st.markdown("🎁 **Bundle bonus:** all three for €1 497 (save €492)")
+    st.link_button("Pay €1 497 – Full Pack", "https://buy.stripe.com/xxxxx1497", type="primary", use_container_width=True)
 
 ##############################################################################
 # BOOK CALL
