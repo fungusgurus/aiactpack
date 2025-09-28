@@ -6,11 +6,16 @@ st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="cent
 
 st.html(r"""
 <style>header{visibility:hidden}.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}.logo-img{height:40px;margin-right:12px}.brand-txt{font-size:1.4rem;font-weight:700;color:#fff}.nav-group{display:flex;gap:.75rem}.main{padding-top:80px}</style>
-<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><a href="https://buy.stripe.com/xxxxx497" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a><a href="https://buy.stripe.com/xxxxx1997" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 997</a><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5sPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><a href="https://buy.stripe.com/xxxxx497" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a><a href="https://buy.stripe.com/xxxxx1997" target="_blank" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 997</a><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
 """)
-st.markdown('<div class="main"></div>', unsafe_allow_html=True)
+st.markdown('<div class="main"></div>', unsafe.allow_html=True)
 
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
+
+##############################################################################
+# BACK-DOOR DETECTION
+##############################################################################
+backdoor = st.experimental_get_query_params().get("backdoor", [""])[0] == "1"
 
 ##############################################################################
 # 10-QUESTION WIZARD (with pick-your-blocks)
@@ -33,11 +38,13 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv", help="List every source – regulators check representativeness & rights.")
 
-    # ---------- CHOOSE BLOCKS ----------
-    st.markdown("### 📦 Choose compliance blocks to generate")
-    do_eu   = st.checkbox("EU AI-Act   (A01-A20 + Declaration)", value=True)
-    do_nist = st.checkbox("NIST AI RMF (B01-B14)", value=True)
-    do_iso  = st.checkbox("ISO 42001 (C01-C13)", value=True)
+    # ---------- CHOOSE MODE ----------
+    st.markdown("### 📦 Choose your purchase mode")
+    mode = st.radio(
+        "Select option:",
+        ["Individual prompts (€50 each)", "Individual bundle (€497)", "Complete bundle (€1 397)"],
+        help="Pay only for what you need."
+    )
 
     # ---------- GENERATE BUTTON ----------
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
@@ -45,75 +52,96 @@ with st.form("aiactpack_wizard"):
         if not model_name or not data_sources:
             st.error("Please complete mandatory fields.")
             st.stop()
-        if not (do_eu or do_nist or do_iso):
-            st.error("Select at least one compliance block.")
-            st.stop()
 
-        payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
+        payload = {**locals()}   # captures all vars including mode
 
-        # ---- build & collect paths ----
+        # ---- decide which blocks to run ----
         blocks = []
-        if do_eu:   blocks += [f"A{i:02d}" for i in range(1, 21)]
-        if do_nist: blocks += [f"B{i:02d}" for i in range(1, 15)]
-        if do_iso:  blocks += [f"C{i:02d}" for i in range(1, 14)]
+        if mode == "Individual prompts (€50 each)":
+            # let user pick individual prompts
+            st.markdown("### 📋 Select individual prompts")
+            for i in range(1, 21):
+                if st.checkbox(f"A{i:02d} (€50)", value=True):
+                    blocks.append(f"A{i:02d}")
+            for i in range(1, 15):
+                if st.checkbox(f"B{i:02d} (€50)", value=True):
+                    blocks.append(f"B{i:02d}")
+            for i in range(1, 14):
+                if st.checkbox(f"C{i:02d} (€50)", value=True):
+                    blocks.append(f"C{i:02d}")
+        elif mode == "Individual bundle (€497)":
+            blocks = [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
+        elif mode == "Complete bundle (€1 397)":
+            blocks = [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
+
         if not blocks:
             st.error("No blocks selected.")
             st.stop()
 
-        st.info("Building block-by-block. Downloads appear below.")
+        st.info("Building block-by-block. Downloads & pay-links appear below.")
 
         zip_paths = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
-                md_path = build_block(code, payload)   # returns pathlib.Path
-                zip_path = zip_block(md_path)          # returns pathlib.Path
+                md_path = build_block(code, payload)
+                zip_path = zip_block(md_path)
                 zip_paths.append(zip_path)
-        st.success("All selected blocks complete.")
 
-# ---------- INITIALISE LIST (survives reload) ----------
-zip_paths = st.session_state.get("zip_paths", [])
+            # ---- DOWNLOAD BUTTON + PAY LINK (outside form) ----
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                st.download_button(
+                    label=f"⬇️ {code} (preview)",
+                    data=open(zip_path, "rb"),
+                    file_name=zip_path.name,
+                    mime="application/zip",
+                    key=f"dl_{code}"
+                )
+            with col2:
+                if backdoor:
+                    st.success("🎁 Back-door enabled – free download below")
+                else:
+                    st.link_button(
+                        label=f"Pay €50 – {code}",
+                        url=f"https://buy.stripe.com/xxxxx50?client_reference_id={code}",
+                        use_container_width=True
+                    )
+
+        st.success("All selected blocks complete.")
 
 # ---------- DOWNLOAD BUTTONS OUTSIDE FORM (no form error) ----------
 st.markdown("---")
-st.markdown("### 📦 Individual Block Downloads")
+st.markdown("### 📦 Downloads")
+
+if backdoor:
+    st.success("🎁 Back-door enabled – all downloads are free.")
+else:
+    st.info("Pay €50 per block above, or use the bundle links below.")
+
 for zip_path in zip_paths:
     st.download_button(
         label=f"⬇️ {zip_path.stem}",
         data=open(zip_path, "rb"),
         file_name=zip_path.name,
         mime="application/zip",
-        key=f"dl_{zip_path.stem}"
+        key=f"dl_{zip_path.stem}_final"
     )
-##############################################################################
-# PRICING SECTION
-##############################################################################
+
+# ---------- BUNDLE LINKS ----------
 st.markdown("---")
-st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
-st.markdown("## 💳 Transparent Pricing")
+st.markdown("### 📦 Certified Bundles")
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.link_button("Pay €497 – EU", "https://buy.stripe.com/xxxxx497", use_container_width=True)
+    st.link_button("Pay €497 – EU Bundle", "https://buy.stripe.com/xxxxx497", use_container_width=True)
 with c2:
-    st.link_button("Pay €497 – NIST", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
+    st.link_button("Pay €497 – NIST Bundle", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
 with c3:
-    st.link_button("Pay €497 – ISO", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
+    st.link_button("Pay €497 – ISO Bundle", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
 
 if st.session_state.get("do_eu") and st.session_state.get("do_nist") and st.session_state.get("do_iso"):
-    st.markdown("🎁 **Bundle bonus:** all three for €1 497 (save €492)")
-    st.link_button("Pay €1 497 – Full Pack", "https://buy.stripe.com/xxxxx1497", type="primary", use_container_width=True)
+    st.markdown("🎁 **Bundle bonus:** all three certified bundles for €1 397 (save €94)")
+    st.link_button("Pay €1 397 – Complete Certified Bundle", "https://buy.stripe.com/xxxxx1397", type="primary", use_container_width=True)
 
-##############################################################################
-# BOOK CALL
-##############################################################################
-st.markdown("---")
-st.markdown("### 📞 Book a 15-min Expert Call")
-st.link_button("Open Calendly", "https://calendly.com/aiactpack/expert", type="primary")
-
-##############################################################################
-# FOOTER
-##############################################################################
+# ---------- FOOTER ----------
 st.markdown("---")
 st.markdown('<div style="text-align:center;font-size:0.9rem;color:#777;">© 2025 AI Act Pack™ – compliance without chaos | <a href="?page=terms">Terms</a> | <a href="?page=privacy">Privacy</a></div>', unsafe_allow_html=True)
-
-
-
