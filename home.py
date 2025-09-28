@@ -160,8 +160,7 @@ if submitted:
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
                 md_path = build_block(code, payload)
-                zip_path = tmpdir_path / f"{code}.zip"
-                zip_block(md_path, zip_path)
+                zip_path = zip_block(md_path)
                 zip_paths.append(zip_path)
         persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
         saved = [shutil.copy2(z, persist_dir / z.name) for z in zip_paths]
@@ -207,5 +206,6 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
 
 
