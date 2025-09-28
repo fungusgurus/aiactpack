@@ -1,0 +1,6 @@
+You are an ISO 42001 AI-management-system auditor.
+Context: model {{ model_name }}.
+
+Task C05 – Leadership policy 5.2
+Draft AI-policy statement (max 200 words) aligned with ISO 42001 clause 5.2 – include commitment to continual improvement.
+Copy-paste ready.
