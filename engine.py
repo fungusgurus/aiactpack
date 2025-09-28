@@ -37,7 +37,7 @@ def call_llm(code: str, prompt: str) -> str:
     return f"[Rate-limit – verify manually] {code}"
 
 ##############################################################################
-# MASTER PACK BUILDER  (batched + progress bar)
+# MASTER PACK BUILDER  (batched + progress bar + streaming download)
 ##############################################################################
 def generate_pack(payload: dict) -> pathlib.Path:
     stamp   = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -99,14 +99,24 @@ def generate_pack(payload: dict) -> pathlib.Path:
     with open(artefacts_dir / "03_ISO_42001.csv", "w", newline='', encoding="utf-8") as f:
         csv.DictWriter(f, fieldnames=["Control", "Evidence"]).writerows(iso_csv)
 
-    # ---- 5. EU Declaration of Conformity (template) ----
+    # ---- 5. EU Declaration (template) ----
     decl_tmpl = Template((TEMPLATES_DIR / "EU_declaration.md").read_text())
     declaration = decl_tmpl.render(ctx=payload, date=datetime.datetime.utcnow().strftime("%d %B %Y"))
     (artefacts_dir / "04_EU_Declaration_of_Conformity.md").write_text(declaration, encoding="utf-8")
 
-    # ---- 6. Zip everything ----
+    # ---- 6. ZIP & STREAM (partial-safe) ----
     zip_path = tmpdir / f"AIACTPACK_{stamp}.zip"
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         for file in artefacts_dir.rglob("*"):
             zf.write(file, file.relative_to(tmpdir))
+
+    # ---- 7. OFFER DOWNLOAD NOW (even if incomplete) ----
+    st.success("Pack built (partial if rate-limit hit). Download below.")
+    with open(zip_path, "rb") as f:
+        st.download_button(
+            label="⬇️ Download compliance bundle",
+            data=f,
+            file_name=zip_path.name,
+            mime="application/zip"
+        )
     return zip_path
