@@ -11,6 +11,17 @@ from pathlib import Path
 
 import streamlit as st
 
+# ----  ENGINE STUBS  (move here until you plug in real engine.py) ----
+def build_block(code: str, payload: dict) -> Path:
+    out = Path(tempfile.mktemp(suffix=".md"))
+    out.write_text(f"# {code}\nPayload: {payload}\n", encoding="utf-8")
+    return out
+
+def zip_block(md_path: Path, zip_path: Path) -> None:
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, md_path.name)
+# --------------------------------------------------------------
+
 # ----------  TEST-MODE BYPASS  ----------
 TEST_MODE = st.query_params.get("test", "") == "1"
 
@@ -204,22 +215,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --------------------------------------------------
-#  ENGINE + STRIPE STUBS  (replace with real modules later)
-# --------------------------------------------------
-import zipfile, tempfile
-
-def build_block(code: str, payload: dict) -> Path:
-    """ Stub – writes a small markdown file. """
-    out = Path(tempfile.mktemp(suffix=".md"))
-    out.write_text(f"# {code}\nPayload: {payload}\n", encoding="utf-8")
-    return out
-
-def zip_block(md_path: Path, zip_path: Path) -> None:
-    """ Zip single markdown file. """
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.write(md_path, md_path.name)
-
 def create_stripe_checkout_session(cart: list[str]) -> str:
     """ Stub – returns fake url. """
     return "https://stripe.com/docs/testing"
+
