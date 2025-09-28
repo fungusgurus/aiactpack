@@ -153,6 +153,7 @@ if submitted:
         zip_paths: list[Path] = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
+                print("build_block exists?", "build_block" in globals())
                 md_path = build_block(code, payload)  # your engine
                 zip_path = tmpdir_path / f"{code}.zip"
                 zip_block(md_path, zip_path)
@@ -249,3 +250,4 @@ def zip_block(md_path: Path, zip_path: Path) -> None:
     """Create a zip containing the markdown."""
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(md_path, arcname=md_path.name)
+
