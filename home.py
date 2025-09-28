@@ -35,7 +35,7 @@ st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h – no lawyers.")
 
 ##############################################################################
-# 10-QUESTION WIZARD (with help & dropdowns)
+# 10-QUESTION WIZARD (with pick-your-blocks)
 ##############################################################################
 st.markdown('<a name="wizard"></a>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
@@ -53,16 +53,27 @@ with st.form("aiactpack_wizard"):
         target_mkt = st.multiselect("Target jurisdictions", ["EU", "UK", "USA", "Canada", "APAC"], default=["EU"], help="Extra jurisdictions add extra rules (UK White-Paper, USA NIST, etc.).")
         sandbox = st.selectbox("Participated in EU AI sandbox ?", ["Yes", "No"], help="Sandbox exit gives you a lighter conformity route.")
         model_family = st.selectbox("Model family", ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"], help="Transformer vs. tree-based = different adversarial tests & metrics.")
+
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv", help="List every source – regulators check representativeness & rights.")
 
+    # ---------- CHOOSE BLOCKS ----------
+    st.markdown("### 📦 Choose compliance blocks to generate")
+    do_eu   = st.checkbox("EU AI-Act   (A01-A20 + Declaration)", value=True)
+    do_nist = st.checkbox("NIST AI RMF (B01-B14)", value=True)
+    do_iso  = st.checkbox("ISO 42001 (C01-C13)", value=True)
+
     # ---------- GENERATE BUTTON ----------
-    submitted = st.form_submit_button("Generate compliance pack →", type="primary")
+    submitted = st.form_submit_button("Generate selected packs →", type="primary")
     if submitted:
         if not model_name or not data_sources:
             st.error("Please complete mandatory fields.")
             st.stop()
-        payload = {**locals()}
-        with st.spinner("Running 47-prompt chain…"):
+        if not (do_eu or do_nist or do_iso):
+            st.error("Select at least one compliance block.")
+            st.stop()
+
+        payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
+        with st.spinner("Running selected prompts…"):
             zip_path = generate_pack(payload)
         with open(zip_path, "rb") as f:
             st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
@@ -70,18 +81,50 @@ with st.form("aiactpack_wizard"):
         st.success("Check your email for the invoice. Need more? See pricing below.")
 
 ##############################################################################
-# PRICING SECTION
+# DYNAMIC PRICING (reads selected blocks)
 ##############################################################################
 st.markdown("---")
 st.markdown('<a name="pricing"></a>', unsafe_allow_html=True)
 st.markdown("## 💳 Transparent Pricing")
+
+# ---- calculate price ----
+base_prices = {"do_eu": 497, "do_nist": 497, "do_iso": 497}
+total_usd   = sum(base_prices[k] for k in ("do_eu", "do_nist", "do_iso") if st.session_state.get(k, False))
+if total_usd == 0:
+    total_usd = 1497   # default full pack if nothing selected
+
+# ---- choose blocks again (mirror wizard) ----
+st.markdown("### 🧮 Select blocks to purchase")
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.link_button("€497 – Starter", "https://buy.stripe.com/xxxxx497", use_container_width=True)
+    buy_eu = st.checkbox("EU AI-Act   €497", value=st.session_state.get("do_eu", True))
 with c2:
-    st.link_button("€1 997 – Growth", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
+    buy_nist = st.checkbox("NIST RMF   €497", value=st.session_state.get("do_nist", True))
 with c3:
-    st.link_button("€7 500 – Enterprise", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
+    buy_iso = st.checkbox("ISO 42001   €497", value=st.session_state.get("do_iso", True))
+
+total_checkout = 497 * (buy_eu + buy_nist + buy_iso)   # True = 1
+
+# ---- PAY NOW BUTTONS (Stripe) ----
+if total_checkout == 0:
+    st.info("Select at least one block to see payment links.")
+else:
+    st.markdown(f"### Total: **€{total_checkout}**")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if buy_eu:
+            st.link_button("Pay €497 – EU", "https://buy.stripe.com/xxxxx497", use_container_width=True)
+    with c2:
+        if buy_nist:
+            st.link_button("Pay €497 – NIST", "https://buy.stripe.com/xxxxx1997", use_container_width=True)
+    with c3:
+        if buy_iso:
+            st.link_button("Pay €497 – ISO", "https://buy.stripe.com/xxxxx7500", use_container_width=True)
+
+    # ---- BUNDLE DISCOUNT (optional) ----
+    if buy_eu and buy_nist and buy_iso:
+        st.markdown("🎁 **Bundle bonus:** all three for €1 497 (save €492)")
+        st.link_button("Pay €1 497 – Full Pack", "https://buy.stripe.com/xxxxx1497", type="primary", use_container_width=True)
 
 ##############################################################################
 # BOOK CALL
