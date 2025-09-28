@@ -43,7 +43,7 @@ header{visibility:hidden}
   </div>
   <div class="nav-group">
     <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a>
-    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 997</a>
+    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 397</a>
     <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
   </div>
 </div>
@@ -227,6 +227,7 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
 
 
 
