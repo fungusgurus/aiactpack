@@ -75,6 +75,7 @@ with st.form("aiactpack_wizard"):
         payload = {**locals()}   # captures all vars including do_eu, do_nist, do_iso
         with st.spinner("Running selected prompts…"):
             zip_path = generate_pack(payload)
+        st.success("Pack built (partial if rate-limit hit). Download below.")
         with open(zip_path, "rb") as f:
             st.download_button("⬇️ Download bundle", f, file_name=zip_path.name)
         os.remove(zip_path)
