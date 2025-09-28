@@ -28,40 +28,21 @@ def call_llm(code: str, prompt: str) -> str:
     return f"[Rate-limit – verify manually] {code}"
 
 ##############################################################################
-# BUTTON-FREE PACK BUILDER  (only builds zip, no Streamlit calls)
+# BUILD SINGLE BLOCK (returns pathlib.Path to .md file)
 ##############################################################################
-def generate_pack(payload: dict) -> pathlib.Path:
-    stamp   = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    tmpdir  = pathlib.Path(tempfile.mkdtemp(prefix=f"pack_{stamp}_"))
-    artefacts_dir = tmpdir / "artefacts"
-    artefacts_dir.mkdir(exist_ok=True)
+def build_block(code: str, payload: dict) -> pathlib.Path:
+    tmpdir = pathlib.Path(tempfile.mkdtemp(prefix=f"block_{code}_"))
+    md_path = tmpdir / f"{code}.md"
+    resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
+    md_path.write_text(resp, encoding="utf-8")
+    return md_path
 
-    # ---- decide which blocks to run ----
-    blocks = []
-    if payload.get("do_eu"):   blocks += [f"A{i:02d}" for i in range(1, 21)]
-    if payload.get("do_nist"): blocks += [f"B{i:02d}" for i in range(1, 15)]
-    if payload.get("do_iso"):  blocks += [f"C{i:02d}" for i in range(1, 14)]
-
-    # ---- A00 Executive Summary (always if EU ticked) ----
-    if payload.get("do_eu"):
-        summary = call_llm("A00", Template(load_prompt("A00")).render(ctx=payload))
-        (artefacts_dir / "A00_Executive_Summary.md").write_text(summary, encoding="utf-8")
-
-    # ---- loop: build each block ----
-    for code in blocks:
-        resp = call_llm(code, Template(load_prompt(code)).render(ctx=payload))
-        (artefacts_dir / f"{code}.md").write_text(resp, encoding="utf-8")
-
-    # ---- EU Declaration (if EU ticked) ----
-    if payload.get("do_eu"):
-        from jinja2 import Template
-        decl_tmpl = Template((TEMPLATES_DIR / "EU_declaration.md").read_text())
-        declaration = decl_tmpl.render(ctx=payload, date=datetime.datetime.utcnow().strftime("%d %B %Y"))
-        (artefacts_dir / "04_EU_Declaration_of_Conformity.md").write_text(declaration, encoding="utf-8")
-
-    # ---- zip everything ----
-    final_zip = tmpdir / f"AIACTPACK_{stamp}.zip"
-    with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for file in artefacts_dir.rglob("*"):
-            zf.write(file, file.relative_to(tmpdir))
-    return final_zip
+##############################################################################
+# ZIP SINGLE BLOCK (returns pathlib.Path to .zip file)
+##############################################################################
+def zip_block(md_path: pathlib.Path) -> pathlib.Path:
+    tmpdir = md_path.parent
+    zip_path = tmpdir / f"{md_path.stem}.zip"
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.write(md_path, md_path.name)
+    return zip_path
