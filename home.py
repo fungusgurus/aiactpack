@@ -1,40 +1,33 @@
-# home.py  –  drop-in replacement with all fixes
-# 1. Individual-prompt check-boxes stay visible
-# 2. Individual-bundle (€497) waits for EU/NIST/ISO choice
-# 3. Test-mode bypass with ?test=1
+# home.py  –  final drop-in version
+# 1.  TEST-MODE  with  ?test=1  (any case)
+# 2.  Individual-prompt check-boxes  ALWAYS  visible once that mode is chosen
+# 3.  Individual-bundle (€497)  waits for  EU / NIST / ISO  choice
+# 4.  Stubs at top so NameError disappears
 # --------------------------------------------------
 import os
 import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-
 import streamlit as st
 
-# ----------  TEST-MODE FLAG  ----------
-if "test_flag" not in st.session_state:
-    # first run – parse and store
-    st.session_state.test_flag = str(st.query_params.get("test", "")).lower() == "1"
-    if st.session_state.test_flag:
-        st.rerun()          # force immediate rerun so flag is visible below
+# ----------  TEST-MODE FLAG  (case-insensitive)  ----------
+TEST_MODE = any(
+    str(v).lower() == "1" for k, v in st.query_params.items() if k.lower() == "test"
+)
 
-TEST_MODE = st.session_state.test_flag
-
-# ----  ENGINE STUBS  (move here until you plug in real engine.py) ----
+# ----------  ENGINE STUBS  (replace with real engine later) ----------
 def build_block(code: str, payload: dict) -> Path:
     out = Path(tempfile.mktemp(suffix=".md"))
-    out.write_text(f"# {code}\nPayload: {payload}\n", encoding="utf-8")
+    out.write_text(f"# Block {code}\n\nPayload: {payload}\n", encoding="utf-8")
     return out
 
 def zip_block(md_path: Path, zip_path: Path) -> None:
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(md_path, md_path.name)
-def create_stripe_checkout_session(cart: list[str]) -> str:
-    return "https://stripe.com/docs/testing"
-# --------------------------------------------------------------
 
-# ----------  TEST-MODE BYPASS  ----------
-TEST_MODE = str(st.query_params.get("test", "")).lower() == "1"
+def create_stripe_checkout_session(cart: list[str]) -> str:
+    return "https://stripe.com/docs/testing"  # stub
 
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
@@ -78,6 +71,7 @@ if "checkout_url" not in st.session_state:
 
 # ----------  10-QUESTION WIZARD  ----------
 st.markdown("### 🧭 10-Question Compliance Wizard")
+
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
@@ -102,7 +96,7 @@ with st.form("aiactpack_wizard"):
         help="Pay only for what you need.",
     )
 
-    # ---- INDIVIDUAL PROMPTS  (always drawn inside form) ----
+    # ---- INDIVIDUAL PROMPTS  (ALWAYS VISIBLE WHEN SELECTED) ----
     selected_individual: list[str] = []
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
@@ -188,11 +182,8 @@ if submitted:
     st.success("All selected blocks complete.  Pay once below, then download.")
 
 # --------------------------------------------------
-#  DOWNLOAD AREA
+#  DOWNLOAD / PAY AREA
 # --------------------------------------------------
-st.write("TEST_MODE =", TEST_MODE)   # delete after confirm
-st.write("query_params =", dict(st.query_params))
-
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Downloads")
@@ -207,13 +198,14 @@ if st.session_state.zips:
                 mime="application/zip",
                 key=f"dl_{z.stem}",
             )
-    else:  # <<<  pay branch hidden when TEST_MODE is True
+    else:
         st.info("Pay once, then download every block instantly.")
         if st.button("Create secure checkout session", type="primary"):
             ck_url = create_stripe_checkout_session(st.session_state.cart)
             st.session_state.checkout_url = ck_url
         if st.session_state.checkout_url:
             st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
+
 # --------------------------------------------------
 #  FOOTER
 # --------------------------------------------------
@@ -226,13 +218,3 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
-
-def create_stripe_checkout_session(cart: list[str]) -> str:
-    """ Stub – returns fake url. """
-    return "https://stripe.com/docs/testing"
-
-
-
-
-
-
