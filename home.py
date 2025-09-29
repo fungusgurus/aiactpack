@@ -1,4 +1,4 @@
-# home.py – instant reveal via top-bar prices
+# home.py – fixed submit button + instant reveal
 # --------------------------------------------------
 import os
 import time
@@ -19,10 +19,8 @@ from engine import build_block, zip_block
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
-# ----------  TOP BAR WITH PRICES  ----------
-def top_bar():
-    st.html(
-        r"""
+st.html(
+    r"""
 <style>
 header{visibility:hidden}
 .top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
@@ -48,10 +46,8 @@ header{visibility:hidden}
   </div>
 </div>
 """
-    )
-    st.markdown('<div class="main"></div>', unsafe_allow_html=True)
-
-top_bar()
+)
+st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
@@ -83,11 +79,7 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- DYNAMIC PANEL  (revealed instantly via URL or radio) ----
-    selected_individual: list[str] = []
-    bundle_choice: str | None = None
-
-    # 1.  READ MODE FROM URL  (top-bar click)
+    # ---- MODE  (read from URL or radio) ----
     url_mode = st.query_params.get("mode", [""])[0]
     if url_mode in {"50", "899", "599", "549", "1997"}:
         mode = {
@@ -97,14 +89,17 @@ with st.form("aiactpack_wizard"):
             "549": "Individual bundle",
             "1997": "Complete bundle (€1 997)",
         }[url_mode]
-        if url_mode != "50":
-            bundle_choice = {
-                "899": "EU AI-Act  (€899)",
-                "599": "NIST AI RMF  (€599)",
-                "549": "ISO 42001  (€549)",
-            }.get(url_mode, None)
+    else:
+        mode = st.radio(
+            "Select purchase mode:",
+            ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
+            help="Pay only for what you need.",
+        )
 
-    # 2.  SHOW CORRECT PANEL
+    # ---- DYNAMIC PANEL  (inside form) ----
+    selected_individual: list[str] = []
+    bundle_choice: str | None = None
+
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
         # EU AI-Act
@@ -145,6 +140,7 @@ with st.form("aiactpack_wizard"):
     elif mode == "Complete bundle (€1 997)":
         st.info("✅ Complete bundle selected – all prompts included.")
 
+    # ----------  SUBMIT BUTTON  (inside form) ----------
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # --------------------------------------------------
