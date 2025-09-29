@@ -1,4 +1,4 @@
-# home.py – instant reveal per radio choice
+# home.py – instant reveal via top-bar prices
 # --------------------------------------------------
 import os
 import time
@@ -19,8 +19,10 @@ from engine import build_block, zip_block
 # ----------  PAGE DECOR  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
-st.html(
-    r"""
+# ----------  TOP BAR WITH PRICES  ----------
+def top_bar():
+    st.html(
+        r"""
 <style>
 header{visibility:hidden}
 .top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
@@ -37,14 +39,19 @@ header{visibility:hidden}
     <span class="brand-txt">AI Act Pack™</span>
   </div>
   <div class="nav-group">
-    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€899</a>
-    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1997</a>
+    <a href="?mode=50"    target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€50</a>
+    <a href="?mode=899"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€899</a>
+    <a href="?mode=599"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€599</a>
+    <a href="?mode=549"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€549</a>
+    <a href="?mode=1997"  target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1997</a>
     <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
   </div>
 </div>
 """
-)
-st.markdown('<div class="main"></div>', unsafe_allow_html=True)
+    )
+    st.markdown('<div class="main"></div>', unsafe_allow_html=True)
+
+top_bar()
 
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
@@ -76,17 +83,28 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- MODE  (radio reveals panel instantly) ----
-    mode = st.radio(
-        "Select purchase mode:",
-        ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
-        help="Pay only for what you need.",
-    )
-
-    # ---- DYNAMIC PANEL  (appears immediately on radio change) ----
+    # ---- DYNAMIC PANEL  (revealed instantly via URL or radio) ----
     selected_individual: list[str] = []
     bundle_choice: str | None = None
 
+    # 1.  READ MODE FROM URL  (top-bar click)
+    url_mode = st.query_params.get("mode", [""])[0]
+    if url_mode in {"50", "899", "599", "549", "1997"}:
+        mode = {
+            "50": "Individual prompts (€50 each)",
+            "899": "Individual bundle",
+            "599": "Individual bundle",
+            "549": "Individual bundle",
+            "1997": "Complete bundle (€1 997)",
+        }[url_mode]
+        if url_mode != "50":
+            bundle_choice = {
+                "899": "EU AI-Act  (€899)",
+                "599": "NIST AI RMF  (€599)",
+                "549": "ISO 42001  (€549)",
+            }.get(url_mode, None)
+
+    # 2.  SHOW CORRECT PANEL
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
         # EU AI-Act
@@ -124,7 +142,6 @@ with st.form("aiactpack_wizard"):
         if not bundle_choice:
             st.warning("Please choose a bundle above.")
 
-    # Complete bundle → no extra choice
     elif mode == "Complete bundle (€1 997)":
         st.info("✅ Complete bundle selected – all prompts included.")
 
