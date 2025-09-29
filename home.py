@@ -1,4 +1,4 @@
-# home.py – top-bar prices only (no links)
+# home.py – professional left/right backgrounds
 # --------------------------------------------------
 import os
 import time
@@ -16,40 +16,38 @@ TEST_MODE = any(
 # ----------  REAL ENGINE  ----------
 from engine import build_block, zip_block
 
-# ----------  PAGE DECOR  ----------
+# ----------  PAGE CONFIG  ----------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
-st.html(
-    r"""
+# ----------  INJECT CSS  (fixed left/right bgs)  ----------
+st.html("""
 <style>
+/* ---- fixed top bar ---- */
 header{visibility:hidden}
-.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
-        display:flex;align-items:center;justify-content:space-between;
-        padding:0 2rem;z-index:999}
+.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}
 .logo-img{height:40px;margin-right:12px}
 .brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
 .nav-group{display:flex;gap:.75rem}
 .main{padding-top:80px}
-</style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
-    <span class="brand-txt">AI Act Pack™</span>
-  </div>
-  <div class="nav-group">
-    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€50</span>
-    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€899</span>
-    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€599</span>
-    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€549</span>
-    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€1997</span>
-    <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
-  </div>
-</div>
-"""
-)
-st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
+/* ---- professional backgrounds ---- */
+.background-grid{
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  display:grid;grid-template-columns:1fr 1200px 1fr;
+  pointer-events:none;z-index:-1;
+}
+.bg-left,.bg-right{
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+}
+.bg-left{ background-image:url("https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?ixlib=rb-4.0&auto=format&fit=crop&w=800&q=80"); }
+.bg-right{background-image:url("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0&auto=format&fit=crop&w=800&q=80");}
+@media(max-width:1200px){.background-grid{display:none;}}
+</style>
+<div class="background-grid"><div class="bg-left"></div><div></div><div class="bg-right"></div></div>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€50</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€899</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€599</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€549</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€1997</span><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
+<div class="main"></div>
+""")
 
 # ----------  SESSION STATE  ----------
 if "zips" not in st.session_state:
@@ -58,6 +56,9 @@ if "cart" not in st.session_state:
     st.session_state.cart: list[str] = []
 if "checkout_url" not in st.session_state:
     st.session_state.checkout_url: str | None = None
+
+# ----------  CONTENT  ----------
+st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
 # ----------  10-QUESTION WIZARD  ----------
 st.markdown("### 🧭 10-Question Compliance Wizard")
