@@ -1,4 +1,4 @@
-# home.py – fixed submit button + instant reveal
+# home.py – top-bar prices only (no links)
 # --------------------------------------------------
 import os
 import time
@@ -37,11 +37,11 @@ header{visibility:hidden}
     <span class="brand-txt">AI Act Pack™</span>
   </div>
   <div class="nav-group">
-    <a href="?mode=50"    target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€50</a>
-    <a href="?mode=899"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€899</a>
-    <a href="?mode=599"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€599</a>
-    <a href="?mode=549"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€549</a>
-    <a href="?mode=1997"  target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1997</a>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€50</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€899</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€599</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€549</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€1997</span>
     <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
   </div>
 </div>
@@ -79,22 +79,12 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- MODE  (read from URL or radio) ----
-    url_mode = st.query_params.get("mode", [""])[0]
-    if url_mode in {"50", "899", "599", "549", "1997"}:
-        mode = {
-            "50": "Individual prompts (€50 each)",
-            "899": "Individual bundle",
-            "599": "Individual bundle",
-            "549": "Individual bundle",
-            "1997": "Complete bundle (€1 997)",
-        }[url_mode]
-    else:
-        mode = st.radio(
-            "Select purchase mode:",
-            ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
-            help="Pay only for what you need.",
-        )
+    # ---- MODE ----
+    mode = st.radio(
+        "Select purchase mode:",
+        ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
+        help="Pay only for what you need.",
+    )
 
     # ---- DYNAMIC PANEL  (inside form) ----
     selected_individual: list[str] = []
