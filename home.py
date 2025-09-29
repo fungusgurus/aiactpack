@@ -1,4 +1,4 @@
-# home.py – fixed submit button + instant reveal
+# home.py – instant reveal via top-bar buttons
 # --------------------------------------------------
 import os
 import time
@@ -31,20 +31,7 @@ header{visibility:hidden}
 .nav-group{display:flex;gap:.75rem}
 .main{padding-top:80px}
 </style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
-    <span class="brand-txt">AI Act Pack™</span>
-  </div>
-  <div class="nav-group">
-    <a href="?mode=50"    target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€50</a>
-    <a href="?mode=899"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€899</a>
-    <a href="?mode=599"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€599</a>
-    <a href="?mode=549"   target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€549</a>
-    <a href="?mode=1997"  target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1997</a>
-    <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
-  </div>
-</div>
+<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
 """
 )
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
@@ -52,12 +39,32 @@ st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
 # ----------  SESSION STATE  ----------
+if "mode" not in st.session_state:
+    st.session_state.mode = "Individual prompts (€50 each)"
+if "bundle_choice" not in st.session_state:
+    st.session_state.bundle_choice = ""
 if "zips" not in st.session_state:
     st.session_state.zips: list[Path] = []
 if "cart" not in st.session_state:
     st.session_state.cart: list[str] = []
 if "checkout_url" not in st.session_state:
     st.session_state.checkout_url: str | None = None
+
+# ----------  TOP-BAR PRICE BUTTONS  (real Streamlit) ----------
+def price_button(label, mode_val):
+    if st.button(label, key=f"btn_{label}"):
+        st.session_state.mode = mode_val
+        if mode_val == "Individual bundle":
+            st.session_state.bundle_choice = ""   # reset
+        st.rerun()                                # instant refresh
+
+st.markdown("### Select a price to reveal options")
+col1, col2, col3, col4, col5 = st.columns(5)
+with col1: price_button("€50",    "Individual prompts (€50 each)")
+with col2: price_button("€899",   "Individual bundle")
+with col3: price_button("€599",   "Individual bundle")
+with col4: price_button("€549",   "Individual bundle")
+with col5: price_button("€1997",  "Complete bundle (€1 997)")
 
 # ----------  10-QUESTION WIZARD  ----------
 st.markdown("### 🧭 10-Question Compliance Wizard")
@@ -79,28 +86,10 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- MODE  (read from URL or radio) ----
-    url_mode = st.query_params.get("mode", [""])[0]
-    if url_mode in {"50", "899", "599", "549", "1997"}:
-        mode = {
-            "50": "Individual prompts (€50 each)",
-            "899": "Individual bundle",
-            "599": "Individual bundle",
-            "549": "Individual bundle",
-            "1997": "Complete bundle (€1 997)",
-        }[url_mode]
-    else:
-        mode = st.radio(
-            "Select purchase mode:",
-            ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
-            help="Pay only for what you need.",
-        )
-
     # ---- DYNAMIC PANEL  (inside form) ----
     selected_individual: list[str] = []
-    bundle_choice: str | None = None
 
-    if mode == "Individual prompts (€50 each)":
+    if st.session_state.mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
         # EU AI-Act
         st.markdown("#### EU AI-Act")
@@ -126,18 +115,18 @@ with st.form("aiactpack_wizard"):
                 if st.checkbox(f"{code} (€50)", value=False, key=code):
                     selected_individual.append(code)
 
-    elif mode == "Individual bundle":
+    elif st.session_state.mode == "Individual bundle":
         st.markdown("### 📦 Choose your bundle")
-        bundle_choice = st.radio(
+        st.session_state.bundle_choice = st.radio(
             "Which bundle do you need?",
             ["EU AI-Act  (€899)", "NIST AI RMF  (€599)", "ISO 42001  (€549)"],
             horizontal=True,
             key="bundle_choice",
         )
-        if not bundle_choice:
+        if not st.session_state.bundle_choice:
             st.warning("Please choose a bundle above.")
 
-    elif mode == "Complete bundle (€1 997)":
+    elif st.session_state.mode == "Complete bundle (€1 997)":
         st.info("✅ Complete bundle selected – all prompts included.")
 
     # ----------  SUBMIT BUTTON  (inside form) ----------
@@ -151,7 +140,7 @@ if submitted:
     if not model_name or not data_sources:
         st.error("Please complete mandatory fields.")
         st.stop()
-    if mode == "Individual bundle" and not bundle_choice:
+    if st.session_state.mode == "Individual bundle" and not st.session_state.bundle_choice:
         st.error("Please select which individual bundle you need.")
         st.stop()
 
@@ -163,16 +152,16 @@ if submitted:
 
     # decide blocks
     blocks: list[str] = []
-    if mode == "Individual prompts (€50 each)":
+    if st.session_state.mode == "Individual prompts (€50 each)":
         blocks = selected_individual
-    elif mode == "Individual bundle":
+    elif st.session_state.mode == "Individual bundle":
         bundle_blocks = {
             "EU AI-Act  (€899)":   ["A00"] + [f"A{j:02d}" for j in range(1, 21)],
             "NIST AI RMF  (€599)": [f"B{j:02d}" for j in range(1, 15)],
             "ISO 42001  (€549)":   [f"C{j:02d}" for j in range(1, 14)],
         }
-        blocks = bundle_blocks[bundle_choice]
-    elif mode == "Complete bundle (€1 997)":
+        blocks = bundle_blocks[st.session_state.bundle_choice]
+    elif st.session_state.mode == "Complete bundle (€1 997)":
         blocks = ["A00"] + [f"A{j:02d}" for j in range(1, 21)] + [f"B{j:02d}" for j in range(1, 15)] + [f"C{j:02d}" for j in range(1, 14)]
 
     if not blocks:
@@ -190,8 +179,8 @@ if submitted:
 
         # pack everything into single zip
         pack_name = (
-            "Complete_Bundle" if mode == "Complete bundle (€1 997)" else
-            f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle" else
+            "Complete_Bundle" if st.session_state.mode == "Complete bundle (€1 997)" else
+            f"{st.session_state.bundle_choice.replace(' ', '_')}_Bundle" if st.session_state.mode == "Individual bundle" else
             "Individual_Prompts"
         ) + f"_{int(time.time())}.zip"
         final_zip = tmpdir_path / pack_name
