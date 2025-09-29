@@ -1,4 +1,4 @@
-# home.py – clearly grouped prompts & new pricing
+# home.py – instant reveal per radio choice
 # --------------------------------------------------
 import os
 import time
@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 import streamlit as st
 
-# ----------  TEST-MODE FLAG  (case-insensitive)  ----------
+# ----------  TEST-MODE FLAG  ----------
 TEST_MODE = any(
     str(v).lower() == "1" for k, v in st.query_params.items() if k.lower() == "test"
 )
@@ -76,18 +76,19 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- MODE ----
+    # ---- MODE  (radio reveals panel instantly) ----
     mode = st.radio(
         "Select purchase mode:",
         ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
         help="Pay only for what you need.",
     )
 
-    # ---- INDIVIDUAL PROMPTS  (GROUPED BY FRAMEWORK) ----
+    # ---- DYNAMIC PANEL  (appears immediately on radio change) ----
     selected_individual: list[str] = []
+    bundle_choice: str | None = None
+
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
-
         # EU AI-Act
         st.markdown("#### EU AI-Act")
         eu_cols = st.columns(4)
@@ -112,9 +113,8 @@ with st.form("aiactpack_wizard"):
                 if st.checkbox(f"{code} (€50)", value=False, key=code):
                     selected_individual.append(code)
 
-    # ---- BUNDLE CHOICE ----
-    bundle_choice: str | None = None
-    if mode == "Individual bundle":
+    elif mode == "Individual bundle":
+        st.markdown("### 📦 Choose your bundle")
         bundle_choice = st.radio(
             "Which bundle do you need?",
             ["EU AI-Act  (€899)", "NIST AI RMF  (€599)", "ISO 42001  (€549)"],
@@ -123,6 +123,10 @@ with st.form("aiactpack_wizard"):
         )
         if not bundle_choice:
             st.warning("Please choose a bundle above.")
+
+    # Complete bundle → no extra choice
+    elif mode == "Complete bundle (€1 997)":
+        st.info("✅ Complete bundle selected – all prompts included.")
 
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
