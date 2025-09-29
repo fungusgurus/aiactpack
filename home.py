@@ -1,4 +1,4 @@
-# home.py – updated pricing & footer links
+# home.py – clearly grouped prompts & new pricing
 # --------------------------------------------------
 import os
 import time
@@ -13,7 +13,7 @@ TEST_MODE = any(
     str(v).lower() == "1" for k, v in st.query_params.items() if k.lower() == "test"
 )
 
-# ----------  REAL ENGINE  (replace stubs if needed) ----------
+# ----------  REAL ENGINE  ----------
 from engine import build_block, zip_block
 
 # ----------  PAGE DECOR  ----------
@@ -83,30 +83,34 @@ with st.form("aiactpack_wizard"):
         help="Pay only for what you need.",
     )
 
-    # ---- INDIVIDUAL PROMPTS  (ALWAYS VISIBLE WHEN SELECTED) ----
+    # ---- INDIVIDUAL PROMPTS  (GROUPED BY FRAMEWORK) ----
     selected_individual: list[str] = []
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
-        cols = st.columns(3)
-        # A00 first
-        with cols[0]:
-            if st.checkbox("A00 – Executive Summary (€50)", value=False, key="A00"):
-                selected_individual.append("A00")
-        # A01-A20
-        for i in range(1, 21):
-            with cols[(i - 1) % 3]:
-                if st.checkbox(f"A{i:02d} (€50)", value=False, key=f"A{i:02d}"):
-                    selected_individual.append(f"A{i:02d}")
-        # B01-B14
-        for i in range(1, 15):
-            with cols[(i - 1) % 3]:
-                if st.checkbox(f"B{i:02d} (€50)", value=False, key=f"B{i:02d}"):
-                    selected_individual.append(f"B{i:02d}")
-        # C01-C13
-        for i in range(1, 14):
-            with cols[(i - 1) % 3]:
-                if st.checkbox(f"C{i:02d} (€50)", value=False, key=f"C{i:02d}"):
-                    selected_individual.append(f"C{i:02d}")
+
+        # EU AI-Act
+        st.markdown("#### EU AI-Act")
+        eu_cols = st.columns(4)
+        for i, code in enumerate(["A00"] + [f"A{j:02d}" for j in range(1, 21)]):
+            with eu_cols[i % 4]:
+                if st.checkbox(f"{code} (€50)", value=False, key=code):
+                    selected_individual.append(code)
+
+        # NIST AI RMF
+        st.markdown("#### NIST AI RMF")
+        ni_cols = st.columns(4)
+        for i, code in enumerate([f"B{j:02d}" for j in range(1, 15)]):
+            with ni_cols[i % 4]:
+                if st.checkbox(f"{code} (€50)", value=False, key=code):
+                    selected_individual.append(code)
+
+        # ISO 42001
+        st.markdown("#### ISO 42001")
+        iso_cols = st.columns(4)
+        for i, code in enumerate([f"C{j:02d}" for j in range(1, 14)]):
+            with iso_cols[i % 4]:
+                if st.checkbox(f"{code} (€50)", value=False, key=code):
+                    selected_individual.append(code)
 
     # ---- BUNDLE CHOICE ----
     bundle_choice: str | None = None
@@ -146,13 +150,13 @@ if submitted:
         blocks = selected_individual
     elif mode == "Individual bundle":
         bundle_blocks = {
-            "EU AI-Act  (€899)":   ["A00"] + [f"A{i:02d}" for i in range(1, 21)],
-            "NIST AI RMF  (€599)": [f"B{i:02d}" for i in range(1, 15)],
-            "ISO 42001  (€549)":   [f"C{i:02d}" for i in range(1, 14)],
+            "EU AI-Act  (€899)":   ["A00"] + [f"A{j:02d}" for j in range(1, 21)],
+            "NIST AI RMF  (€599)": [f"B{j:02d}" for j in range(1, 15)],
+            "ISO 42001  (€549)":   [f"C{j:02d}" for j in range(1, 14)],
         }
         blocks = bundle_blocks[bundle_choice]
     elif mode == "Complete bundle (€1 997)":
-        blocks = ["A00"] + [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
+        blocks = ["A00"] + [f"A{j:02d}" for j in range(1, 21)] + [f"B{j:02d}" for j in range(1, 15)] + [f"C{j:02d}" for j in range(1, 14)]
 
     if not blocks:
         st.error("No blocks selected.")
@@ -211,7 +215,7 @@ if st.session_state.zips:
             st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
 
 # --------------------------------------------------
-#  FOOTER
+#  FOOTER  (updated links)
 # --------------------------------------------------
 st.markdown("---")
 st.markdown(
