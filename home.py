@@ -222,11 +222,12 @@ st.markdown("---")
 st.markdown(
     '<div style="text-align:center;font-size:0.9rem;color:#777;">'
     "© 2025 AI Act Pack™ – compliance without chaos | "
-    '<a href="https://aiactpack.com/terms">Terms</a> | '
-    '<a href="https://aiactpack.com/privacy">Privacy</a>'
+    '<a href="https://aiactpack-eunistiso42001wlr.streamlit.app/terms">Terms</a> | '
+    '<a href="https://aiactpack-eunistiso42001wlr.streamlit.app/privacy">Privacy</a>'
     "</div>",
     unsafe_allow_html=True,
 )
+
 
 
 
