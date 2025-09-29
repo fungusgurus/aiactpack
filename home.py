@@ -1,9 +1,4 @@
-# home.py  –  single-file replacement
-# 1.  A00-Executive Summary added (first item in EU bundle & picker)
-# 2.  Individual bundle → ONE zip  (all chosen blocks)
-# 3.  Complete bundle  → ONE zip  (all A+B+C)
-# 4.  Individual prompts → ONE zip (all checked blocks)
-# 5.  Test-mode with ?test=1  (case-insensitive)
+# home.py – updated pricing & footer links
 # --------------------------------------------------
 import os
 import time
@@ -18,7 +13,7 @@ TEST_MODE = any(
     str(v).lower() == "1" for k, v in st.query_params.items() if k.lower() == "test"
 )
 
-# ----------  ENGINE STUBS  (replace with real engine later) ----------
+# ----------  REAL ENGINE  (replace stubs if needed) ----------
 from engine import build_block, zip_block
 
 # ----------  PAGE DECOR  ----------
@@ -42,8 +37,8 @@ header{visibility:hidden}
     <span class="brand-txt">AI Act Pack™</span>
   </div>
   <div class="nav-group">
-    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€497</a>
-    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1 397</a>
+    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€899</a>
+    <a href="" target="_self" style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">€1997</a>
     <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
   </div>
 </div>
@@ -51,7 +46,7 @@ header{visibility:hidden}
 )
 st.markdown('<div class="main"></div>', unsafe_allow_html=True)
 
-st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidences in 48 hours – no lawyers.")
+st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
 
 # ----------  SESSION STATE  ----------
 if "zips" not in st.session_state:
@@ -84,7 +79,7 @@ with st.form("aiactpack_wizard"):
     # ---- MODE ----
     mode = st.radio(
         "Select purchase mode:",
-        ["Individual prompts (€50 each)", "Individual bundle (€497)", "Complete bundle (€1 397)"],
+        ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
         help="Pay only for what you need.",
     )
 
@@ -115,15 +110,15 @@ with st.form("aiactpack_wizard"):
 
     # ---- BUNDLE CHOICE ----
     bundle_choice: str | None = None
-    if mode == "Individual bundle (€497)":
+    if mode == "Individual bundle":
         bundle_choice = st.radio(
             "Which bundle do you need?",
-            ["EU AI-Act", "NIST AI RMF", "ISO 42001"],
+            ["EU AI-Act  (€899)", "NIST AI RMF  (€599)", "ISO 42001  (€549)"],
             horizontal=True,
             key="bundle_choice",
         )
         if not bundle_choice:
-            st.warning("Please choose EU AI-Act, NIST AI RMF or ISO 42001 above.")
+            st.warning("Please choose a bundle above.")
 
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
@@ -135,7 +130,7 @@ if submitted:
     if not model_name or not data_sources:
         st.error("Please complete mandatory fields.")
         st.stop()
-    if mode == "Individual bundle (€497)" and not bundle_choice:
+    if mode == "Individual bundle" and not bundle_choice:
         st.error("Please select which individual bundle you need.")
         st.stop()
 
@@ -149,14 +144,14 @@ if submitted:
     blocks: list[str] = []
     if mode == "Individual prompts (€50 each)":
         blocks = selected_individual
-    elif mode == "Individual bundle (€497)":
+    elif mode == "Individual bundle":
         bundle_blocks = {
-            "EU AI-Act":   ["A00"] + [f"A{i:02d}" for i in range(1, 21)],
-            "NIST AI RMF": [f"B{i:02d}" for i in range(1, 15)],
-            "ISO 42001":   [f"C{i:02d}" for i in range(1, 14)],
+            "EU AI-Act  (€899)":   ["A00"] + [f"A{i:02d}" for i in range(1, 21)],
+            "NIST AI RMF  (€599)": [f"B{i:02d}" for i in range(1, 15)],
+            "ISO 42001  (€549)":   [f"C{i:02d}" for i in range(1, 14)],
         }
         blocks = bundle_blocks[bundle_choice]
-    elif mode == "Complete bundle (€1 397)":
+    elif mode == "Complete bundle (€1 997)":
         blocks = ["A00"] + [f"A{i:02d}" for i in range(1, 21)] + [f"B{i:02d}" for i in range(1, 15)] + [f"C{i:02d}" for i in range(1, 14)]
 
     if not blocks:
@@ -174,8 +169,8 @@ if submitted:
 
         # pack everything into single zip
         pack_name = (
-            "Complete_Bundle" if mode == "Complete bundle (€1 397)" else
-            f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle (€497)" else
+            "Complete_Bundle" if mode == "Complete bundle (€1 997)" else
+            f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle" else
             "Individual_Prompts"
         ) + f"_{int(time.time())}.zip"
         final_zip = tmpdir_path / pack_name
@@ -222,16 +217,8 @@ st.markdown("---")
 st.markdown(
     '<div style="text-align:center;font-size:0.9rem;color:#777;">'
     "© 2025 AI Act Pack™ – compliance without chaos | "
-    '<a href="https://www.aiactpack.com/terms.md">Terms</a> | '
-    '<a href="https://www.aiactpack.com/privacy.md">Privacy</a>'
+    '<a href="https://www.aiactpack.com/terms.md" target="_blank">Terms</a> | '
+    '<a href="https://www.aiactpack.com/privacy.md" target="_blank">Privacy</a>'
     "</div>",
     unsafe_allow_html=True,
 )
-
-
-
-
-
-
-
-
