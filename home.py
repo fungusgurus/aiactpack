@@ -1,10 +1,13 @@
 # ---------------------------------------------------------
-#  home.py  –  AI Act Pack™  –  drop-in replacement
-#  NOWPayments crypto checkout + royalty-free icons + sample report
+#  home.py  –  AI Act Pack™  –  complete file
+#  NOWPayments crypto checkout + auto client PDF report
+#  (sample report base-64 lives in sample_report.py)
 # ---------------------------------------------------------
-import os, time, shutil, tempfile, zipfile, base64
+import os, time, shutil, tempfile, zipfile
 from pathlib import Path
 import streamlit as st
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from weasyprint import HTML, CSS
 
 # ------------------------------------------------------------------
 #  0.  CONFIG
@@ -16,27 +19,18 @@ SUPPORT_EMAIL = "support@aiactpack.com"
 CALENDLY_URL  = "https://calendly.com/aiactpack/expert"
 
 # ------------------------------------------------------------------
-#  1.  SESSION-STATE INITIALISATION  (fixes AttributeError)
+#  1.  SESSION-STATE INITIALISATION  (no AttributeError)
 # ------------------------------------------------------------------
 for k, v in (("zips", []), ("cart", []), ("checkout_url", None)):
     st.session_state.setdefault(k, v)
 
 # ------------------------------------------------------------------
-#  2.  SAMPLE REPORT  (redacted 2-page PDF, ~60 kB)
-#    Replace the string below with your own base-64 encoded PDF
+#  2.  IMPORT SAMPLE REPORT BASE-64 FROM EXTERNAL FILE
 # ------------------------------------------------------------------
-SAMPLE_PDF_B64 = """
-JVBERi0xLjQKJcOkw7zDtsO8CjIgMCBvYmoKPDwKL0xlbmd0aCAzIDAgUgovRmlsdGVyIC9GbGF0ZURlY29kZQo+PgpzdHJlYW0KeJzLSMxLLUmNzNFLzs8rzi9KycxLt4IDAIvJBw4KZW5kc3RyZWFtCmVuZG9iago0IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMyAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgOSAwIFIKPj4KPj4KL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMyAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgOSAwIFIKPj4KPj4KL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KL0NvbnRlbnRzIDYgMCBSCj4+CmVuZG9iago2IDAgb2JqCjw8Ci9MZW5ndGggNyAwIFIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKPj4Kc3RyZWFtCnicK2ZmqOZSUEjMyy9SSMqvzMsx1DPQUQjJT80rSc0tykvMTbUqzi8tykvMTbUy0DNQKErMK9FLzs8rzi9KycxLt4IDAIvJBw4KZW5kc3RyZWFtCmVuZG9iago3IDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAzIDAgUgo+PgplbmRvYmoKOSAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFs0IDAgNSAwIFIKXQovQ291bnQgMgo+PgplbmRvYmoKeHJlZgowIDExCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDc0IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDIyOSAwMDAwMCBuIAowMDAwMDAwMzEyIDAwMDAwIG4gCjAwMDAwMDAzODMgMDAwMDAgbiAKMDAwMDAwMDQ2NSAwMDAwMCBuIAowMDAwMDAwNTIyIDAwMDAwIG4gCjAwMDAwMDA1NzUgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSAxMQovUm9vdCA3IDAgUgovSW5mbyA4IDAgUgo+PgpzdGFydHhyZWYKNjI3CiUlRU9GCg==
-""".strip()
-
-def download_sample():
-    """Shows a download button for the redacted sample report."""
-    st.download_button(
-        label="⬇️ Download redacted sample report",
-        data=base64.b64decode(SAMPLE_PDF_B64),
-        file_name="AI_Act_Pack_sample_report.pdf",
-        mime="application/pdf",
-    )
+try:
+    from sample_report import SAMPLE_PDF_B64
+except ModuleNotFoundError:
+    SAMPLE_PDF_B64 = ""   # fallback empty
 
 # ------------------------------------------------------------------
 #  3.  NOWPayments links
@@ -131,10 +125,16 @@ with col:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-#  10.  SAMPLE REPORT DOWNLOAD
+#  10.  SAMPLE REPORT DOWNLOAD  (imported b64)
 # ------------------------------------------------------------------
-with st.expander("📄 Want to see a sample report before you buy?"):
-    download_sample()
+if SAMPLE_PDF_B64:
+    with st.expander("📄 Want to see a sample report before you buy?"):
+        st.download_button(
+            label="⬇️ Download redacted sample report",
+            data=base64.b64decode(SAMPLE_PDF_B64),
+            file_name="AI_Act_Pack_sample_report.pdf",
+            mime="application/pdf",
+        )
 
 # ------------------------------------------------------------------
 #  11.  LEAD MAGNET
@@ -207,7 +207,7 @@ with st.form("aiactpack_wizard"):
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # ------------------------------------------------------------------
-#  13.  POST-SUBMIT  (same as before)
+#  13.  POST-SUBMIT  (build blocks + client PDF)
 # ------------------------------------------------------------------
 if submitted:
     if not model_name or not data_sources:
@@ -240,10 +240,63 @@ if submitted:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         built_files: list[Path] = []
+        real_outputs = {}
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
-                built_files.append(build_block(code, payload))
+                out = build_block(code, payload)
+                built_files.append(out["file_path"])   # adapt to your engine
+                real_outputs[code] = out.get("summary", {})
 
+        # ----------------------------------------------------
+        # 13-A  render client-facing PDF
+        # ----------------------------------------------------
+        env = Environment(
+            loader=FileSystemLoader("templates"),
+            autoescape=select_autoescape(["html", "xml"])
+        )
+        template = env.get_template("report_template.html")
+        context = {
+            "trade_name": payload["model_name"],
+            "version": "2.1.14",
+            "provider": "Acme FinTech Ltd (IE)",
+            "high_risk_use_case": payload["high_risk"],
+            "deployment": payload["deploy_env"],
+            "n_users": payload["n_users"],
+            "model_family": payload["model_family"],
+            "overall_status": "no critical gaps" if "B05" in blocks else "minor gaps",
+            "risk_class": "High-risk (Annex III §6(a))",
+            "evidence_ready": 18,
+            "evidence_total": 20,
+            "effort_days": 6,
+            "gap_6a_status": "✅ Draft fairness report",
+            "transparency_status": "✅ Labelled AI; T&Cs updated",
+            "risk_mgmt_status": "✅",
+            "risk_mgmt_notes": "ISO 31000 aligned, v1.4 signed off",
+            "data_gov_status": "✅",
+            "data_gov_notes": "Training data sheet & bias audit",
+            "tech_doc_status": "✅",
+            "tech_doc_notes": "104-page doc pack under doc-control",
+            "module_b_status": "❌",
+            "module_b_notes": "Draft with NB; awaiting final quote",
+            "module_b_days": 3,
+            "nb_week": 28,
+        }
+        html = template.render(context)
+        client_report_path = tmpdir_path / f"EU_AI_Act_Report_{int(time.time())}.pdf"
+        HTML(string=html).write_pdf(
+            client_report_path,
+            stylesheets=[CSS(string="""
+                @page{size:A4;margin:2cm}
+                body{font-family:Helvetica,sans-serif;font-size:11pt}
+                table{width:100%;border-collapse:collapse}
+                th,td{border:1px solid #ccc;padding:6px}
+                th{background:#f5f5f5}
+            """)]
+        )
+
+        # ----------------------------------------------------
+        # 13-B  build ZIP with both prompts & client report
+        # ----------------------------------------------------
         pack_name = (
             "Complete_Bundle" if mode == "Complete bundle (€1 997)" else
             f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle" else
@@ -254,6 +307,7 @@ if submitted:
         with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
             for bf in built_files:
                 zf.write(bf, bf.name)
+            zf.write(client_report_path, client_report_path.name)
 
         persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
         saved_zip = shutil.copy2(final_zip, persist_dir / final_zip.name)
@@ -280,7 +334,7 @@ if st.session_state.get("zips"):
             key="final_zip",
         )
     else:
-        st.html(f'{ICON["coin"]}{ICON["qr"]}<small>Crypto checkout (auto fiat conversion)</small>')
+        st.html('<div style="display:flex;gap:8px;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg><small>Crypto checkout (auto fiat conversion)</small></div>')
         if st.button("Create crypto checkout session", type="primary"):
             cart = st.session_state.cart
             if set(cart) == set(["A00"] + [f"A{j:02d}" for j in range(1, 21)] +
