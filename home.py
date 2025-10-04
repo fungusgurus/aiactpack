@@ -1,9 +1,9 @@
 # ---------------------------------------------------------
 #  home.py  –  AI Act Pack™  –  complete file
 #  NOWPayments crypto checkout + auto client PDF report
-#  (sample report base-64 lives in sample_report.py)
+#  Logo: AIACTPack.png  (served on Streamlit Cloud)
 # ---------------------------------------------------------
-import os, time, shutil, tempfile, zipfile
+import os, time, shutil, tempfile, zipfile, base64
 from pathlib import Path
 import streamlit as st
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -19,7 +19,7 @@ SUPPORT_EMAIL = "support@aiactpack.com"
 CALENDLY_URL  = "https://calendly.com/aiactpack/expert"
 
 # ------------------------------------------------------------------
-#  1.  SESSION-STATE INITIALISATION  (no AttributeError)
+#  1.  SESSION-STATE INITIALISATION
 # ------------------------------------------------------------------
 for k, v in (("zips", []), ("cart", []), ("checkout_url", None)):
     st.session_state.setdefault(k, v)
@@ -30,10 +30,22 @@ for k, v in (("zips", []), ("cart", []), ("checkout_url", None)):
 try:
     from sample_report import SAMPLE_PDF_B64
 except ModuleNotFoundError:
-    SAMPLE_PDF_B64 = ""   # fallback empty
+    SAMPLE_PDF_B64 = ""
 
 # ------------------------------------------------------------------
-#  3.  NOWPayments links
+#  3.  SERVE STATIC FILES (logo) on Streamlit Cloud
+# ------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def _prepare_static():
+    static_dir = Path("app/static")
+    static_dir.mkdir(parents=True, exist_ok=True)
+    src = Path("AIACTPack.png")
+    if src.exists() and not (static_dir / src.name).exists():
+        shutil.copy(src, static_dir / src.name)
+_prepare_static()
+
+# ------------------------------------------------------------------
+#  4.  NOWPayments links
 # ------------------------------------------------------------------
 NOW_LINKS = {
     "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
@@ -44,17 +56,17 @@ NOW_LINKS = {
 }
 
 # ------------------------------------------------------------------
-#  4.  TEST-MODE SWITCH
+#  5.  TEST-MODE SWITCH
 # ------------------------------------------------------------------
 TEST_MODE = st.query_params.get("test") == "1"
 
 # ------------------------------------------------------------------
-#  5.  ENGINE
+#  6.  ENGINE
 # ------------------------------------------------------------------
 from engine import build_block
 
 # ------------------------------------------------------------------
-#  6.  PAGE CONFIG
+#  7.  PAGE CONFIG
 # ------------------------------------------------------------------
 st.set_page_config(
     page_title=f"{COMPANY_NAME} – EU AI Act, NIST & ISO 42001 evidence in 48 h",
@@ -63,7 +75,7 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------
-#  7.  COOKIE BANNER  (raw JS)
+#  8.  COOKIE BANNER
 # ------------------------------------------------------------------
 st.html(r"""
 <script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js" data-cfasync="false"></script>
@@ -76,37 +88,37 @@ window.cookieconsent.initialise({
 """)
 
 # ------------------------------------------------------------------
-#  8.  CSS
+#  9.  CSS  (logo img src points to /app/static)
 # ------------------------------------------------------------------
-st.html("""
+st.html(f"""
 <style>
-header{visibility:hidden}
-.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
+header{{visibility:hidden}}
+.top-bar{{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
         display:flex;align-items:center;justify-content:space-between;
-        padding:0 2rem;z-index:999;color:#fff;font-weight:600}
-.top-bar a{color:#fff;text-decoration:none}
-.hero{padding:6rem 1rem 3rem;text-align:center}
-.hero h1{font-size:2.5rem;color:#003399;margin-bottom:.5rem}
-.hero p{font-size:1.1rem;color:#444;max-width:600px;margin:auto}
-.proof-bar{display:flex;justify-content:center;gap:2rem;margin-top:2rem;font-size:.9rem}
-.proof-bar div{display:flex;align-items:center;gap:.3rem}
-.cta-group{margin-top:2rem;display:flex;gap:1rem;justify-content:center}
-.cta-group a{padding:.75rem 1.5rem;border-radius:6px;font-weight:600;text-decoration:none}
-.btn-primary{background:#00d4aa;color:#fff}
-.btn-secondary{background:#fff;color:#003399;border:2px solid #003399}
-@media(max-width:768px){.proof-bar{flex-direction:column;gap:.5rem}}
+        padding:0 2rem;z-index:999;color:#fff;font-weight:600}}
+.top-bar a{{color:#fff;text-decoration:none}}
+.hero{{padding:6rem 1rem 3rem;text-align:center}}
+.hero h1{{font-size:2.5rem;color:#003399;margin-bottom:.5rem}}
+.hero p{{font-size:1.1rem;color:#444;max-width:600px;margin:auto}}
+.proof-bar{{display:flex;justify-content:center;gap:2rem;margin-top:2rem;font-size:.9rem}}
+.proof-bar div{{display:flex;align-items:center;gap:.3rem}}
+.cta-group{{margin-top:2rem;display:flex;gap:1rem;justify-content:center}}
+.cta-group a{{padding:.75rem 1.5rem;border-radius:6px;font-weight:600;text-decoration:none}}
+.btn-primary{{background:#00d4aa;color:#fff}}
+.btn-secondary{{background:#fff;color:#003399;border:2px solid #003399}}
+@media(max-width:768px){{.proof-bar{{flex-direction:column;gap:.5rem}}}}
 </style>
 <div class="top-bar">
   <div style="display:flex;align-items:center">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" alt="logo" style="height:40px;margin-right:12px">
+    <img src="app/static?file=AIACTPack.png" alt="logo" style="height:40px;margin-right:12px">
     <span>AI Act Pack™</span>
   </div>
-  <div><a href=""" + CALENDLY_URL + """ target="_blank">Book 15-min Call</a></div>
+  <div><a href="{cal}" target="_blank">Book 15-min Call</a></div>
 </div>
-""")
+""".format(cal=CALENDLY_URL))
 
 # ------------------------------------------------------------------
-#  9.  HERO
+#  10.  HERO
 # ------------------------------------------------------------------
 st.markdown('<div class="hero">', unsafe_allow_html=True)
 st.markdown("## Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h—no lawyers.")
@@ -125,7 +137,7 @@ with col:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-#  10.  SAMPLE REPORT DOWNLOAD  (imported b64)
+#  11.  SAMPLE REPORT DOWNLOAD
 # ------------------------------------------------------------------
 if SAMPLE_PDF_B64:
     with st.expander("📄 Want to see a sample report before you buy?"):
@@ -137,7 +149,7 @@ if SAMPLE_PDF_B64:
         )
 
 # ------------------------------------------------------------------
-#  11.  LEAD MAGNET
+#  12.  LEAD MAGNET
 # ------------------------------------------------------------------
 with st.container(border=True):
     st.markdown("### 🎯 Free EU AI-Act Readiness Score (2 min)")
@@ -154,7 +166,7 @@ with st.container(border=True):
                 st.balloons()
 
 # ------------------------------------------------------------------
-#  12.  ANCHOR + WIZARD
+#  13.  ANCHOR + WIZARD
 # ------------------------------------------------------------------
 st.markdown('<div id="wizard"></div>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
@@ -207,7 +219,7 @@ with st.form("aiactpack_wizard"):
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # ------------------------------------------------------------------
-#  13.  POST-SUBMIT  (build blocks + client PDF)
+#  14.  POST-SUBMIT  (build blocks + client PDF)
 # ------------------------------------------------------------------
 if submitted:
     if not model_name or not data_sources:
@@ -248,7 +260,7 @@ if submitted:
                 real_outputs[code] = out.get("summary", {})
 
         # ----------------------------------------------------
-        # 13-A  render client-facing PDF
+        # 14-A  render client-facing PDF
         # ----------------------------------------------------
         env = Environment(
             loader=FileSystemLoader("templates"),
@@ -295,7 +307,7 @@ if submitted:
         )
 
         # ----------------------------------------------------
-        # 13-B  build ZIP with both prompts & client report
+        # 14-B  ZIP everything
         # ----------------------------------------------------
         pack_name = (
             "Complete_Bundle" if mode == "Complete bundle (€1 997)" else
@@ -317,7 +329,7 @@ if submitted:
     st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
 # ------------------------------------------------------------------
-#  14.  DOWNLOAD / CRYPTO CHECKOUT  (defensive get)
+#  15.  DOWNLOAD / CRYPTO CHECKOUT
 # ------------------------------------------------------------------
 if st.session_state.get("zips"):
     st.markdown("---")
@@ -355,7 +367,7 @@ if st.session_state.get("zips"):
             st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
-#  15.  FOOTER
+#  16.  FOOTER
 # ------------------------------------------------------------------
 st.markdown("---")
 st.markdown(
