@@ -436,3 +436,4 @@ st.markdown(
     <a href="mailto:{SUPPORT_EMAIL}">Contact</a>
     </div>""",
     unsafe_allow_html=True,
+)
