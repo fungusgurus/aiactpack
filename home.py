@@ -1,7 +1,7 @@
 # ---------------------------------------------------------
 #  home.py  –  AI Act Pack™  –  complete file
 #  NOWPayments crypto checkout + auto client PDF report
-#  Logo: AIACTPack.png  (served on Streamlit Cloud)
+#  Logo: AIACTPack.png  (served on VPS)
 # ---------------------------------------------------------
 import os, time, shutil, tempfile, zipfile, base64
 from pathlib import Path
@@ -33,15 +33,22 @@ except ModuleNotFoundError:
     SAMPLE_PDF_B64 = ""
 
 # ------------------------------------------------------------------
-#  3.  SERVE STATIC FILES (logo) on Streamlit Cloud
+#  3.  SERVE STATIC FILES (logo) - FIXED FOR VPS
 # ------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
 def _prepare_static():
-    static_dir = Path("app/static")
-    static_dir.mkdir(parents=True, exist_ok=True)
-    src = Path("AIACTPack.png")
-    if src.exists() and not (static_dir / src.name).exists():
-        shutil.copy(src, static_dir / src.name)
+    # Use static directory in root for VPS
+    static_dir = Path("static")
+    static_dir.mkdir(exist_ok=True)
+    
+    # Copy logo to static directory if it exists
+    logo_src = Path("AIACTPack.png")
+    if logo_src.exists():
+        shutil.copy(logo_src, static_dir / "AIACTPack.png")
+        st.success(f"✅ Logo copied to static directory")
+    else:
+        st.error(f"❌ Logo file not found: {logo_src.absolute()}")
+
 _prepare_static()
 
 # ------------------------------------------------------------------
@@ -88,54 +95,40 @@ window.cookieconsent.initialise({
 """)
 
 # ------------------------------------------------------------------
-#  9.  TOP BAR  (logo + call-link)  –  no NameError
+#  9.  TOP BAR  (logo + call-link) - FIXED FOR VPS
 # ------------------------------------------------------------------
-top_bar = f"""
-<style>
-header{{visibility:hidden}}
-.top-bar{{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
-        display:flex;align-items:center;justify-content:space-between;
-        padding:0 2rem;z-index:999;color:#fff;font-weight:600}}
-.top-bar a{{color:#fff;text-decoration:none}}
-.hero{{padding:6rem 1rem 3rem;text-align:center}}
-.hero h1{{font-size:2.5rem;color:#003399;margin-bottom:.5rem}}
-.hero p{{font-size:1.1rem;color:#444;max-width:600px;margin:auto}}
-.proof-bar{{display:flex;justify-content:center;gap:2rem;margin-top:2rem;font-size:.9rem}}
-.proof-bar div{{display:flex;align-items:center;gap:.3rem}}
-.cta-group{{margin-top:2rem;display:flex;gap:1rem;justify-content:center}}
-.cta-group a{{padding:.75rem 1.5rem;border-radius:6px;font-weight:600;text-decoration:none}}
-.btn-primary{{background:#00d4aa;color:#fff}}
-.btn-secondary{{background:#fff;color:#003399;border:2px solid #003399}}
-@media(max-width:768px){{.proof-bar{{flex-direction:column;gap:.5rem}}}}
-</style>
-<div class="top-bar">
-  <div style="display:flex;align-items:center">
-    <img src="app/static?file=AIACTPack.png" alt="logo" style="height:40px;margin-right:12px">
-    <span>AI Act Pack™</span>
-  </div>
-  <div><a href="{CALENDLY_URL}" target="_blank">Book 15-min Call</a></div>
-</div>
-"""
-st.html(top_bar)
+# Simple top bar without complex static file paths
+col1, col2, col3 = st.columns([2, 1, 1])
+with col1:
+    if Path("AIACTPack.png").exists():
+        st.image("AIACTPack.png", width=120)
+    else:
+        st.markdown(f"### {COMPANY_NAME}")
+with col3:
+    st.markdown(f'<div style="text-align: right; padding-top: 10px;">'
+                f'<a href="{CALENDLY_URL}" target="_blank" style="color: #003399; text-decoration: none; font-weight: bold;">📞 Book 15-min Call</a>'
+                f'</div>', unsafe_allow_html=True)
+
+st.markdown("---")
 
 # ------------------------------------------------------------------
 #  10.  HERO
 # ------------------------------------------------------------------
-st.markdown('<div class="hero">', unsafe_allow_html=True)
 st.markdown("## Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h—no lawyers.")
 st.markdown("Up to €30 M fines apply from 2 Aug 2025.  Save €15 k+ in advisory fees with battle-tested templates trusted by 200+ AI teams.")
 c1, c2, c3 = st.columns(3)
 c1.metric("✅ AI systems assessed", "217")
 c2.metric("✅ NB-ready reports", "38")
 c3.metric("✅ Days saved avg", "12")
-_, col, _ = st.columns([1, 2, 1])
-with col:
-    st.markdown("""
-    <div class="cta-group">
-      <a href="#wizard" class="btn-primary">Start 10-Question Wizard</a>
-    </div>
-    """, unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("""
+<div style="text-align: center; margin: 2rem 0;">
+    <a href="#wizard" style="background: #00d4aa; color: white; padding: 12px 24px; 
+       border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+       Start 10-Question Wizard
+    </a>
+</div>
+""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 #  11.  SAMPLE REPORT DOWNLOAD
@@ -368,17 +361,22 @@ if st.session_state.get("zips"):
             st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
-#  16.  FOOTER
+#  16.  FOOTER - FIXED FOR VPS
 # ------------------------------------------------------------------
 st.markdown("---")
+
+# Check which markdown files exist and create links
+footer_links = ""
+for name, file in [("Terms", "terms.md"), ("Privacy", "privacy.md"), ("Cookie Policy", "cookies.md")]:
+    if Path(file).exists():
+        # Use direct file links that will be served by Nginx
+        footer_links += f'<a href="/{file}" target="_blank">{name}</a> | '
+
 st.markdown(
     f"""<div style='text-align:center;font-size:.85rem;color:#777'>
     © 2025 {COMPANY_NAME} – compliance without chaos<br>
     {COMPANY_NAME} | VAT: {COMPANY_VAT} | {COMPANY_ADDR}<br>
-    <a href="mailto:{SUPPORT_EMAIL}">Contact</a> |
-    <a href="https://www.aiactpack.com/terms" target="_blank">Terms</a> |
-    <a href="https://www.aiactpack.com/privacy" target="_blank">Privacy</a> |
-    <a href="https://www.aiactpack.com/cookies" target="_blank">Cookie Policy</a>
+    <a href="mailto:{SUPPORT_EMAIL}">Contact</a> | {footer_links}
     </div>""",
     unsafe_allow_html=True,
 )
