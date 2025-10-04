@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 # ------------------------------------------------------------------
-#  1.  CONFIG –  paste your NOWPayments permanent links here
+#  0.  CONFIG –  paste your NOWPayments permanent links here
 # ------------------------------------------------------------------
 NOW_LINKS = {
     "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
@@ -15,6 +15,18 @@ NOW_LINKS = {
     "nist_bundle": "https://nowpayments.io/payment/?amount=599&currency=eur&invoice_id=aiactpack-nist",
     "iso_bundle":  "https://nowpayments.io/payment/?amount=549&currency=eur&invoice_id=aiactpack-iso",
     "complete":    "https://nowpayments.io/payment/?amount=1997&currency=eur&invoice_id=aiactpack-full",
+}
+
+# ------------------------------------------------------------------
+#  1.  ROYALTY-FREE ICONS  (inline SVG)
+# ------------------------------------------------------------------
+ICON_SVG = {
+    "document": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 17l-2 2 2 2 4-4"/></svg>""",
+    "shield": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>""",
+    "clipboard": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14h6M9 18h6"/></svg>""",
+    "box": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#00d4aa" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>""",
+    "coin": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>""",
+    "qr": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><rect x="9" y="3" width="4" height="4" rx="1"/><rect x="3" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/><rect x="15" y="7" width="4" height="4" rx="1"/><rect x="7" y="15" width="4" height="4" rx="1"/></svg>""",
 }
 
 # ------------------------------------------------------------------
@@ -252,3 +264,4 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
