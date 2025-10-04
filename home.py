@@ -116,7 +116,6 @@ header{{visibility:hidden}}
   <div><a href="{cal}" target="_blank">Book 15-min Call</a></div>
 </div>
 """.format(cal=CALENDLY_URL))
-
 # ------------------------------------------------------------------
 #  10.  HERO
 # ------------------------------------------------------------------
@@ -381,3 +380,4 @@ st.markdown(
     </div>""",
     unsafe_allow_html=True,
 )
+
