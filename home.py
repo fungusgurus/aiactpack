@@ -1,19 +1,19 @@
 # ---------------------------------------------------------
-#  home.py  –  AI Act Pack™  –  redesigned 2025-06-XX
+#  home.py  –  AI Act Pack™  –  drop-in replacement
 #  NOWPayments crypto checkout + royalty-free icons
 # ---------------------------------------------------------
-import os, time, shutil, tempfile, zipfile, json
+import os, time, shutil, tempfile, zipfile
 from pathlib import Path
 import streamlit as st
 
 # ------------------------------------------------------------------
 #  0.  CONFIG –  fill once
 # ------------------------------------------------------------------
-COMPANY_NAME   = "AI Act Pack™"
-COMPANY_VAT    = "EU123456789"                # ← your real VAT ID
-COMPANY_ADDR   = "123 Compliance Blvd, Dublin, Ireland"
-SUPPORT_EMAIL  = "support@aiactpack.com"
-CALENDLY_URL   = "https://calendly.com/aiactpack/expert"
+COMPANY_NAME  = "AI Act Pack™"
+COMPANY_VAT   = "EU123456789"                # ← real VAT
+COMPANY_ADDR  = "123 Compliance Blvd, Dublin, Ireland"
+SUPPORT_EMAIL = "support@aiactpack.com"
+CALENDLY_URL  = "https://calendly.com/aiactpack/expert"
 
 NOW_LINKS = {
     "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
@@ -24,15 +24,15 @@ NOW_LINKS = {
 }
 
 # ------------------------------------------------------------------
-#  1.  ICONS (inline SVG)
+#  1.  ICONS  (shortened SVG)
 # ------------------------------------------------------------------
-ICON_SVG = {
-    "document":  """<svg …> … </svg>""",   # shortened for brevity – keep your originals
-    "shield":    """<svg …> … </svg>""",
-    "clipboard": """<svg …> … </svg>""",
-    "box":       """<svg …> … </svg>""",
-    "coin":      """<svg …> … </svg>""",
-    "qr":        """<svg …> … </svg>""",
+ICON = {
+    "document":  """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>""",
+    "shield":    """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>""",
+    "clipboard": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/></svg>""",
+    "box":       """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#00d4aa" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>""",
+    "coin":      """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>""",
+    "qr":        """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg>""",
 }
 
 # ------------------------------------------------------------------
@@ -46,44 +46,29 @@ TEST_MODE = st.query_params.get("test") == "1"
 from engine import build_block
 
 # ------------------------------------------------------------------
-#  4.  PAGE CONFIG  (SEO meta + accessibility)
+#  4.  PAGE CONFIG
 # ------------------------------------------------------------------
 st.set_page_config(
     page_title=f"{COMPANY_NAME} – EU AI Act, NIST & ISO 42001 evidence in 48 h",
     page_icon="⚖️",
     layout="centered",
-    initial_sidebar_state="collapsed",
 )
 
 # ------------------------------------------------------------------
-#  5.  INJECT <HEAD>  (JSON-LD + GDPR cookie script)
+#  5.  COOKIE BANNER  (raw JS → no braces conflict)
 # ------------------------------------------------------------------
-st.html(f"""
+st.html(r"""
 <script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js" data-cfasync="false"></script>
 <script>
-window.cookieconsent.initialise({{
-  "palette": {{ "popup": { "background": "#003399" }, "button": { "background": "#00d4aa" } }},
-  "content": {{ "message": "We use cookies to ensure compliance with EU laws and deliver a smooth experience." }}
-}});
-</script>
-
-<script type="application/ld+json">
-{{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "{COMPANY_NAME}",
-  "url": "https://aiactpack.com",
-  "potentialAction": {{
-    "@type": "SearchAction",
-    "target": "https://aiactpack.com/?search={{search_term_string}}",
-    "query-input": "required name=search_term_string"
-  }}
-}}
+window.cookieconsent.initialise({
+  "palette": { "popup": { "background": "#003399" }, "button": { "background": "#00d4aa" } },
+  "content": { "message": "We use cookies to ensure compliance with EU laws and deliver a smooth experience." }
+});
 </script>
 """)
 
 # ------------------------------------------------------------------
-#  6.  CSS  (premium gradient + top bar)
+#  6.  CSS
 # ------------------------------------------------------------------
 st.html("""
 <style>
@@ -103,48 +88,41 @@ header{visibility:hidden}
 .btn-secondary{background:#fff;color:#003399;border:2px solid #003399}
 @media(max-width:768px){.proof-bar{flex-direction:column;gap:.5rem}}
 </style>
-""")
-
-# ------------------------------------------------------------------
-#  7.  TOP BAR
-# ------------------------------------------------------------------
-st.html(f"""
 <div class="top-bar">
   <div style="display:flex;align-items:center">
     <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" alt="logo" style="height:40px;margin-right:12px">
-    <span>{COMPANY_NAME}</span>
+    <span>AI Act Pack™</span>
   </div>
-  <div style="display:flex;gap:1rem;align-items:center">
-    <a href="{CALENDLY_URL}" target="_blank">Book 15-min Call</a>
-  </div>
+  <div><a href=""" + CALENDLY_URL + """ target="_blank">Book 15-min Call</a></div>
 </div>
 """)
 
 # ------------------------------------------------------------------
-#  8.  HERO  (value prop + social proof)
+#  7.  HERO
 # ------------------------------------------------------------------
-st.html("""
-<div class="hero">
-  <h1>Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h—no lawyers.</h1>
-  <p>Up to €30 M fines apply from 2 Aug 2025.  Save €15 k+ in advisory fees with battle-tested templates trusted by 200+ AI teams.</p>
-  <div class="proof-bar">
-    <div>✅ 217 AI systems assessed</div>
-    <div>✅ 38 Notified-Body-ready reports</div>
-    <div>✅ 12-day average time-saving</div>
-  </div>
-  <div class="cta-group">
-    <a href="#wizard" class="btn-primary">Start 10-Question Wizard</a>
-    <a href="https://www.aiactpack.com/samples" class="btn-secondary">See sample report</a>
-  </div>
-</div>
-""")
+st.markdown('<div class="hero">', unsafe_allow_html=True)
+st.markdown("## Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h—no lawyers.")
+st.markdown("Up to €30 M fines apply from 2 Aug 2025.  Save €15 k+ in advisory fees with battle-tested templates trusted by 200+ AI teams.")
+c1, c2, c3 = st.columns(3)
+c1.metric("✅ AI systems assessed", "217")
+c2.metric("✅ NB-ready reports", "38")
+c3.metric("✅ Days saved avg", "12")
+_, col, _ = st.columns([1, 2, 1])
+with col:
+    st.markdown("""
+    <div class="cta-group">
+      <a href="#wizard" class="btn-primary">Start 10-Question Wizard</a>
+      <a href="https://www.aiactpack.com/samples" class="btn-secondary">See sample report</a>
+    </div>
+    """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-#  9.  LEAD MAGNET  (email gate → free readiness score)
+#  8.  LEAD MAGNET
 # ------------------------------------------------------------------
 with st.container(border=True):
     st.markdown("### 🎯 Free EU AI-Act Readiness Score (2 min)")
-    c1, c2 = st.columns([2, 1])
+    c1, c2 = st.columns([3, 1])
     with c1:
         email = st.text_input("Business email", placeholder="alice@company.com")
     with c2:
@@ -153,32 +131,35 @@ with st.container(border=True):
             if "@" not in email:
                 st.error("Please enter a valid email.")
             else:
-                # TODO: store email + redirect to Typeform / Tally
+                # TODO: store email + send Typeform link
                 st.success("Check your inbox—link on its way!")
                 st.balloons()
 
 # ------------------------------------------------------------------
-#  10.  10-QUESTION WIZARD  (anchor link #wizard)
+#  9.  ANCHOR FOR WIZARD
 # ------------------------------------------------------------------
-st.html('<div id="wizard"></div>')
+st.markdown('<div id="wizard"></div>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
+
+# ------------------------------------------------------------------
+#  10.  WIZARD FORM
+# ------------------------------------------------------------------
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
-        sector      = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
-        model_name  = st.text_input("Model trade name *", placeholder="CreditGPT-3")
-        n_users     = st.number_input("Expected EU users *", 0, 50_000_000, 5_000, 1_000)
-        high_risk   = st.selectbox("High-risk Annex III use-case *", ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"])
-        data_modal  = st.multiselect("Data modalities", ["Text", "Image", "Tabular", "Audio", "Video"], default=["Text"])
+        sector       = st.selectbox("Industry sector *", ["FinTech", "HealthTech", "HR-tech", "AdTech", "Retail", "CyberSec", "Auto", "Other"])
+        model_name   = st.text_input("Model trade name *", placeholder="CreditGPT-3")
+        n_users      = st.number_input("Expected EU users *", 0, 50_000_000, 5_000, 1_000)
+        high_risk    = st.selectbox("High-risk Annex III use-case *", ["None", "Biometric ID", "HR / recruitment", "Credit scoring", "Insurance pricing"])
+        data_modal   = st.multiselect("Data modalities", ["Text", "Image", "Tabular", "Audio", "Video"], default=["Text"])
     with col2:
-        deploy_env  = st.selectbox("Deployment environment", ["AWS", "Azure", "GCP", "On-prem", "Hybrid"])
-        ce_mark     = st.selectbox("Already CE-marked HW/SW ?", ["Yes", "No", "Partial"])
-        target_mkt  = st.multiselect("Target jurisdictions", ["EU", "UK", "USA", "Canada", "APAC"], default=["EU"])
-        sandbox     = st.selectbox("Participated in EU AI sandbox ?", ["Yes", "No"])
-        model_family= st.selectbox("Model family", ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"])
+        deploy_env   = st.selectbox("Deployment environment", ["AWS", "Azure", "GCP", "On-prem", "Hybrid"])
+        ce_mark      = st.selectbox("Already CE-marked HW/SW ?", ["Yes", "No", "Partial"])
+        target_mkt   = st.multiselect("Target jurisdictions", ["EU", "UK", "USA", "Canada", "APAC"], default=["EU"])
+        sandbox      = st.selectbox("Participated in EU AI sandbox ?", ["Yes", "No"])
+        model_family = st.selectbox("Model family", ["GPT-3.5-turbo", "GPT-4", "Llama-3", "Claude-3", "Gemini", "Custom transformer", "Tree-based"])
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ------------- purchase mode ----------------
     mode = st.radio(
         "Select purchase mode:",
         ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
@@ -211,7 +192,7 @@ with st.form("aiactpack_wizard"):
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # ------------------------------------------------------------------
-#  11.  POST-SUBMIT  (same logic as before)
+#  11.  POST-SUBMIT  (same as before)
 # ------------------------------------------------------------------
 if submitted:
     if not model_name or not data_sources:
@@ -267,7 +248,7 @@ if submitted:
     st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
 # ------------------------------------------------------------------
-#  12.  DOWNLOAD / CRYPTO CHECKOUT  (unchanged logic)
+#  12.  DOWNLOAD / CRYPTO CHECKOUT
 # ------------------------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
@@ -284,7 +265,7 @@ if st.session_state.zips:
             key="final_zip",
         )
     else:
-        st.html(f'{ICON_SVG["coin"]}{ICON_SVG["qr"]}<small>Crypto checkout (auto fiat conversion)</small>')
+        st.html(f'{ICON["coin"]}{ICON["qr"]}<small>Crypto checkout (auto fiat conversion)</small>')
         if st.button("Create crypto checkout session", type="primary"):
             cart = st.session_state.cart
             if set(cart) == set(["A00"] + [f"A{j:02d}" for j in range(1, 21)] +
@@ -305,7 +286,7 @@ if st.session_state.zips:
             st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
-#  13.  FOOTER  (GDPR-compliant)
+#  13.  FOOTER
 # ------------------------------------------------------------------
 st.markdown("---")
 st.markdown(
