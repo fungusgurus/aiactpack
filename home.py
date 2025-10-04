@@ -19,7 +19,7 @@ SUPPORT_EMAIL = "support@aiactpack.com"
 CALENDLY_URL  = "https://calendly.com/aiactpack/expert"
 
 # ------------------------------------------------------------------
-#  1.  SESSION-STATE INITIALISATION
+#  1.  SESSION-STATE INITIALISATION  (no AttributeError)
 # ------------------------------------------------------------------
 for k, v in (("zips", []), ("cart", []), ("checkout_url", None)):
     st.session_state.setdefault(k, v)
@@ -88,9 +88,9 @@ window.cookieconsent.initialise({
 """)
 
 # ------------------------------------------------------------------
-#  9.  CSS  (logo img src points to /app/static)
+#  9.  TOP BAR  (logo + call-link)  –  no NameError
 # ------------------------------------------------------------------
-st.html(f"""
+top_bar = f"""
 <style>
 header{{visibility:hidden}}
 .top-bar{{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
@@ -113,9 +113,11 @@ header{{visibility:hidden}}
     <img src="app/static?file=AIACTPack.png" alt="logo" style="height:40px;margin-right:12px">
     <span>AI Act Pack™</span>
   </div>
-  <div><a href="{cal}" target="_blank">Book 15-min Call</a></div>
+  <div><a href="{CALENDLY_URL}" target="_blank">Book 15-min Call</a></div>
 </div>
-""".format(cal=CALENDLY_URL))
+"""
+st.html(top_bar)
+
 # ------------------------------------------------------------------
 #  10.  HERO
 # ------------------------------------------------------------------
@@ -380,5 +382,3 @@ st.markdown(
     </div>""",
     unsafe_allow_html=True,
 )
-
-
