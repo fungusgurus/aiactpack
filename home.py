@@ -40,15 +40,11 @@ def _prepare_static():
     # Use static directory in root for VPS
     static_dir = Path("static")
     static_dir.mkdir(exist_ok=True)
-    
+
     # Copy logo to static directory if it exists
     logo_src = Path("AIACTPack.png")
     if logo_src.exists():
         shutil.copy(logo_src, static_dir / "AIACTPack.png")
-        st.success(f"✅ Logo copied to static directory")
-    else:
-        st.error(f"❌ Logo file not found: {logo_src.absolute()}")
-
 _prepare_static()
 
 # ------------------------------------------------------------------
@@ -95,21 +91,40 @@ window.cookieconsent.initialise({
 """)
 
 # ------------------------------------------------------------------
-#  9.  TOP BAR  (logo + call-link) - FIXED FOR VPS
+#  9.  TOP BAR - CLEAN WORKING VERSION
 # ------------------------------------------------------------------
-# Simple top bar without complex static file paths
-col1, col2, col3 = st.columns([2, 1, 1])
+# Create columns for layout
+col1, col2 = st.columns([4, 1])
+
 with col1:
+    # Display logo and company name
     if Path("AIACTPack.png").exists():
-        st.image("AIACTPack.png", width=120)
+        st.image("AIACTPack.png", width=180)
     else:
-        st.markdown(f"### {COMPANY_NAME}")
-with col3:
-    st.markdown(f'<div style="text-align: right; padding-top: 10px;">'
-                f'<a href="{CALENDLY_URL}" target="_blank" style="color: #003399; text-decoration: none; font-weight: bold;">📞 Book 15-min Call</a>'
-                f'</div>', unsafe_allow_html=True)
+        st.markdown(f"## {COMPANY_NAME}")
+
+with col2:
+    # Empty space for alignment
+    st.write("")
+    st.write("")
+    # Call button
+    st.markdown(f"""
+    <a href="{CALENDLY_URL}" target="_blank"
+       style="background: #00d4aa; color: white; padding: 12px 20px;
+              border-radius: 6px; text-decoration: none; font-weight: bold;
+              display: inline-block; text-align: center;">
+        📞 Book 15-min Call
+    </a>
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
+
+# URGENCY BANNER - ADD THIS RIGHT AFTER THE --- LINE
+st.markdown("""
+<div style="text-align: center; background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 12px; border-radius: 8px; margin: 10px 0; color: white; font-weight: bold;">
+    🚀 23 companies completed compliance this week | ⏰ EU AI Act enforcement starts Aug 2, 2025
+</div>
+""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 #  10.  HERO
@@ -121,12 +136,36 @@ c1.metric("✅ AI systems assessed", "217")
 c2.metric("✅ NB-ready reports", "38")
 c3.metric("✅ Days saved avg", "12")
 
+# TRUST BADGES - ADD THIS RIGHT AFTER YOUR METRICS
+st.markdown("""
+<div style="display: flex; gap: 15px; justify-content: center; margin: 2rem 0; flex-wrap: wrap;">
+    <span style="background: #00d4aa; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">🔒 GDPR Compliant</span>
+    <span style="background: #003399; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">💳 Secure Payment</span>
+    <span style="background: #6c757d; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">🛡️ 24h Support</span>
+    <span style="background: #28a745; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">✅ Money-Back Guarantee</span>
+</div>
+""", unsafe_allow_html=True)
+# ENHANCED CTA BUTTON - REPLACE YOUR EXISTING ONE
 st.markdown("""
 <div style="text-align: center; margin: 2rem 0;">
-    <a href="#wizard" style="background: #00d4aa; color: white; padding: 12px 24px; 
-       border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
-       Start 10-Question Wizard
+    <a href="#wizard" style="
+        background: linear-gradient(135deg, #00d4aa, #00b894);
+        color: white;
+        padding: 16px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.2rem;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    ">
+        🚀 Start Free Assessment (2 mins)
     </a>
+    <br><br>
+    <small style="color: #666;">No credit card required • Get instant results</small>
 </div>
 """, unsafe_allow_html=True)
 
@@ -361,22 +400,39 @@ if st.session_state.get("zips"):
             st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
-#  16.  FOOTER - FIXED FOR VPS
+#  16.  FOOTER - FIXED FOR STREAMLIT SERVING
 # ------------------------------------------------------------------
 st.markdown("---")
 
-# Check which markdown files exist and create links
-footer_links = ""
-for name, file in [("Terms", "terms.md"), ("Privacy", "privacy.md"), ("Cookie Policy", "cookies.md")]:
-    if Path(file).exists():
-        # Use direct file links that will be served by Nginx
-        footer_links += f'<a href="/{file}" target="_blank">{name}</a> | '
+# Create expanders for policy documents instead of external links
+col1, col2, col3 = st.columns(3)
 
+with col1:
+    with st.expander("📄 Terms of Service"):
+        if Path("terms.md").exists():
+            st.markdown(Path("terms.md").read_text())
+        else:
+            st.write("Terms document coming soon.")
+
+with col2:
+    with st.expander("🔒 Privacy Policy"):
+        if Path("privacy.md").exists():
+            st.markdown(Path("privacy.md").read_text())
+        else:
+            st.write("Privacy policy coming soon.")
+
+with col3:
+    with st.expander("🍪 Cookie Policy"):
+        if Path("cookies.md").exists():
+            st.markdown(Path("cookies.md").read_text())
+        else:
+            st.write("Cookie policy coming soon.")
+
+# Basic footer
 st.markdown(
     f"""<div style='text-align:center;font-size:.85rem;color:#777'>
     © 2025 {COMPANY_NAME} – compliance without chaos<br>
     {COMPANY_NAME} | VAT: {COMPANY_VAT} | {COMPANY_ADDR}<br>
-    <a href="mailto:{SUPPORT_EMAIL}">Contact</a> | {footer_links}
+    <a href="mailto:{SUPPORT_EMAIL}">Contact</a>
     </div>""",
     unsafe_allow_html=True,
-)
