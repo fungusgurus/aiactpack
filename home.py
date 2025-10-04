@@ -1,6 +1,6 @@
 # --------------------------------------------------
-#  home.py  –  AI Act Pack™  (NOWPayments crypto checkout)
-#  0.5 % fee, auto EUR conversion, fiat to bank next day.
+#  home.py  –  AI Act Pack™
+#  NOWPayments crypto checkout + royalty-free generic icons
 # --------------------------------------------------
 import os, time, shutil, tempfile, zipfile
 from pathlib import Path
@@ -8,7 +8,6 @@ import streamlit as st
 
 # ------------------------------------------------------------------
 #  1.  CONFIG –  paste your NOWPayments permanent links here
-#      Dashboard: https://account.nowpayments.io → Payment Tools → Payment Link
 # ------------------------------------------------------------------
 NOW_LINKS = {
     "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
@@ -114,12 +113,13 @@ with st.form("aiactpack_wizard"):
 
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
-        for family, codes, cols in (
-            ("EU AI-Act", ["A00"] + [f"A{j:02d}" for j in range(1, 21)], 4),
-            ("NIST AI RMF", [f"B{j:02d}" for j in range(1, 15)], 4),
-            ("ISO 42001", [f"C{j:02d}" for j in range(1, 14)], 4),
+        for family, codes, cols, icon in (
+            ("EU AI-Act",   ["A00"] + [f"A{j:02d}" for j in range(1, 21)], 4, "document"),
+            ("NIST AI RMF", [f"B{j:02d}" for j in range(1, 15)],          4, "shield"),
+            ("ISO 42001",   [f"C{j:02d}" for j in range(1, 14)],          4, "clipboard"),
         ):
             st.markdown(f"#### {family}")
+            st.html(f'<div style="display:flex;gap:8px;align-items:center;">{ICON_SVG[icon]}<small>{family} prompts</small></div>')
             columns = st.columns(cols)
             for i, code in enumerate(codes):
                 with columns[i % cols]:
@@ -128,6 +128,7 @@ with st.form("aiactpack_wizard"):
 
     elif mode == "Individual bundle":
         st.markdown("### 📦 Choose your bundle")
+        st.html(f'<div style="display:flex;gap:8px;align-items:center;">{ICON_SVG["box"]}<small>Bundle icon</small></div>')
         bundle_choice = st.radio(
             "Which bundle do you need?",
             ["EU AI-Act  (€899)", "NIST AI RMF  (€599)", "ISO 42001  (€549)"],
@@ -218,6 +219,7 @@ if st.session_state.zips:
             key="final_zip",
         )
     else:
+        st.html(f'<div style="display:flex;gap:8px;align-items:center;">{ICON_SVG["coin"]}{ICON_SVG["qr"]}<small>Crypto checkout (auto fiat conversion)</small></div>')
         st.info("Pay once in **crypto** (any wallet).  Fiat conversion & fiat payout handled automatically.")
         if st.button("Create crypto checkout session", type="primary"):
             cart = st.session_state.cart
