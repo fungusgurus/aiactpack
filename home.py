@@ -1,62 +1,93 @@
-# home.py – premium gradients (no images)
 # --------------------------------------------------
-import os
-import time
-import shutil
-import tempfile
-import zipfile
+#  home.py  –  EU AI Act Pack™  (Stripe Payment-Link edition)
+#  No backend required – just paste your Payment Links and ship.
+# --------------------------------------------------
+import os, time, shutil, tempfile, zipfile
 from pathlib import Path
 import streamlit as st
 
-# ----------  TEST-MODE FLAG  ----------
+# ------------------------------------------------------------------
+#  1.  CONFIG –  paste your Stripe Payment Links here
+# ------------------------------------------------------------------
+STRIPE_LINKS = {
+    "individual":  "https://buy.stripe.com/xxxxxxxxxxxxx",   # €50
+    "eu_bundle":   "https://buy.stripe.com/xxxxxxxxxxxxx",   # €899
+    "nist_bundle": "https://buy.stripe.com/xxxxxxxxxxxxx",   # €599
+    "iso_bundle":  "https://buy.stripe.com/xxxxxxxxxxxxx",   # €549
+    "complete":    "https://buy.stripe.com/xxxxxxxxxxxxx",   # €1 997
+}
+
+# ------------------------------------------------------------------
+#  2.  TEST-MODE SWITCH  (?test=1  in URL)
+# ------------------------------------------------------------------
 TEST_MODE = any(
     str(v).lower() == "1" for k, v in st.query_params.items() if k.lower() == "test"
 )
 
-# ----------  REAL ENGINE  ----------
-from engine import build_block, zip_block
+# ------------------------------------------------------------------
+#  3.  ENGINE IMPORT
+# ------------------------------------------------------------------
+from engine import build_block
 
-# ----------  PAGE CONFIG  ----------
+# ------------------------------------------------------------------
+#  4.  PAGE SET-UP
+# ------------------------------------------------------------------
 st.set_page_config(page_title="AI Act Pack™", page_icon="⚖️", layout="centered")
 
-# ----------  PREMIUM GRADIENT BACKGROUND  (no images) ----------
+# --- premium gradient background + fixed top bar (no images) -----
 st.html("""
 <style>
-/* ---- fixed top bar ---- */
 header{visibility:hidden}
-.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:999;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:70px;background:#003399;
+        display:flex;align-items:center;justify-content:space-between;
+        padding:0 2rem;z-index:999;}
 .logo-img{height:40px;margin-right:12px}
 .brand-txt{font-size:1.4rem;font-weight:700;color:#fff}
 .nav-group{display:flex;gap:.75rem}
 .main{padding-top:80px}
-
-/* ---- premium gradient background ---- */
-body{
-  background:linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  background-attachment:fixed;
-}
+body{background:linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+     background-attachment:fixed;}
 @media (max-width:768px){
   body{background:linear-gradient(135deg, #eef2f6 0%, #dfe9f3 100%);}
 }
 </style>
-<div class="top-bar"><div style="display:flex;align-items:center"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/><span class="brand-txt">AI Act Pack™</span></div><div class="nav-group"><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€50</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€899</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€599</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€549</span><span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€1997</span><a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a></div></div>
+<div class="top-bar">
+  <div style="display:flex;align-items:center">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwIDJMMzIgMTR2MTJMMjAgMzhsLTEyLTEyVjE0TDIwIDJaIi8+PC9zdmc+" class="logo-img"/>
+    <span class="brand-txt">AI Act Pack™</span>
+  </div>
+  <div class="nav-group">
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€50</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€899</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€599</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€549</span>
+    <span style="background:#fff;color:#003399;padding:.45rem .9rem;border-radius:6px;font-weight:600;">€1997</span>
+    <a href="https://calendly.com/aiactpack/expert" target="_blank" style="background:#00d4aa;color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:600;text-decoration:none;">Book 15-min Call</a>
+  </div>
+</div>
 <div class="main"></div>
 """)
 
-# ----------  SESSION STATE  ----------
-if "zips" not in st.session_state:
-    st.session_state.zips: list[Path] = []
-if "cart" not in st.session_state:
-    st.session_state.cart: list[str] = []
-if "checkout_url" not in st.session_state:
-    st.session_state.checkout_url: str | None = None
+# ------------------------------------------------------------------
+#  5.  SESSION STATE
+# ------------------------------------------------------------------
+for key, default in (
+    ("zips", []),
+    ("cart", []),
+    ("checkout_url", None),
+):
+    if key not in st.session_state:
+        setattr(st.session_state, key, default)
 
-# ----------  CONTENT  ----------
+# ------------------------------------------------------------------
+#  6.  CONTENT HEADER
+# ------------------------------------------------------------------
 st.markdown("### Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 hours – no lawyers.")
-
-# ----------  10-QUESTION WIZARD  ----------
 st.markdown("### 🧭 10-Question Compliance Wizard")
 
+# ------------------------------------------------------------------
+#  7.  WIZARD FORM
+# ------------------------------------------------------------------
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
@@ -74,42 +105,29 @@ with st.form("aiactpack_wizard"):
 
     data_sources = st.text_area("Training data sources (1 per line) *", placeholder="wikimedia.org\ninternal-2022-2024.csv")
 
-    # ---- MODE ----
     mode = st.radio(
         "Select purchase mode:",
         ["Individual prompts (€50 each)", "Individual bundle", "Complete bundle (€1 997)"],
         help="Pay only for what you need.",
     )
 
-    # ---- DYNAMIC PANEL  (inside form) ----
+    # ------------- dynamic block selector ----------------
     selected_individual: list[str] = []
     bundle_choice: str | None = None
 
     if mode == "Individual prompts (€50 each)":
         st.markdown("### 📋 Select individual prompts")
-        # EU AI-Act
-        st.markdown("#### EU AI-Act")
-        eu_cols = st.columns(4)
-        for i, code in enumerate(["A00"] + [f"A{j:02d}" for j in range(1, 21)]):
-            with eu_cols[i % 4]:
-                if st.checkbox(f"{code} (€50)", value=False, key=code):
-                    selected_individual.append(code)
-
-        # NIST AI RMF
-        st.markdown("#### NIST AI RMF")
-        ni_cols = st.columns(4)
-        for i, code in enumerate([f"B{j:02d}" for j in range(1, 15)]):
-            with ni_cols[i % 4]:
-                if st.checkbox(f"{code} (€50)", value=False, key=code):
-                    selected_individual.append(code)
-
-        # ISO 42001
-        st.markdown("#### ISO 42001")
-        iso_cols = st.columns(4)
-        for i, code in enumerate([f"C{j:02d}" for j in range(1, 14)]):
-            with iso_cols[i % 4]:
-                if st.checkbox(f"{code} (€50)", value=False, key=code):
-                    selected_individual.append(code)
+        for family, codes, cols in (
+            ("EU AI-Act", ["A00"] + [f"A{j:02d}" for j in range(1, 21)], 4),
+            ("NIST AI RMF", [f"B{j:02d}" for j in range(1, 15)], 4),
+            ("ISO 42001", [f"C{j:02d}" for j in range(1, 14)], 4),
+        ):
+            st.markdown(f"#### {family}")
+            columns = st.columns(cols)
+            for i, code in enumerate(codes):
+                with columns[i % cols]:
+                    if st.checkbox(f"{code} (€50)", value=False, key=code):
+                        selected_individual.append(code)
 
     elif mode == "Individual bundle":
         st.markdown("### 📦 Choose your bundle")
@@ -125,60 +143,54 @@ with st.form("aiactpack_wizard"):
     elif mode == "Complete bundle (€1 997)":
         st.info("✅ Complete bundle selected – all prompts included.")
 
-    # ----------  SUBMIT BUTTON  (inside form) ----------
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
-# --------------------------------------------------
-#  POST-SUBMIT
-# --------------------------------------------------
+# ------------------------------------------------------------------
+#  8.  POST-SUBMIT
+# ------------------------------------------------------------------
 if submitted:
-    # guards
     if not model_name or not data_sources:
-        st.error("Please complete mandatory fields.")
-        st.stop()
+        st.error("Please complete mandatory fields."); st.stop()
     if mode == "Individual bundle" and not bundle_choice:
-        st.error("Please select which individual bundle you need.")
-        st.stop()
+        st.error("Please select which individual bundle you need."); st.stop()
 
-    # minimal payload
     payload = {k: v for k, v in locals().items() if k in {
         "sector", "model_name", "n_users", "high_risk", "data_modal",
         "deploy_env", "ce_mark", "target_mkt", "sandbox", "model_family", "data_sources"
     }}
 
-    # decide blocks
-    blocks: list[str] = []
+    # decide which blocks to generate
     if mode == "Individual prompts (€50 each)":
         blocks = selected_individual
     elif mode == "Individual bundle":
-        bundle_blocks = {
+        bundle_map = {
             "EU AI-Act  (€899)":   ["A00"] + [f"A{j:02d}" for j in range(1, 21)],
             "NIST AI RMF  (€599)": [f"B{j:02d}" for j in range(1, 15)],
             "ISO 42001  (€549)":   [f"C{j:02d}" for j in range(1, 14)],
         }
-        blocks = bundle_blocks[bundle_choice]
-    elif mode == "Complete bundle (€1 997)":
-        blocks = ["A00"] + [f"A{j:02d}" for j in range(1, 21)] + [f"B{j:02d}" for j in range(1, 15)] + [f"C{j:02d}" for j in range(1, 14)]
+        blocks = bundle_map[bundle_choice]
+    else:  # complete
+        blocks = ["A00"] + [f"A{j:02d}" for j in range(1, 21)] + \
+                 [f"B{j:02d}" for j in range(1, 15)] + \
+                 [f"C{j:02d}" for j in range(1, 14)]
 
     if not blocks:
-        st.error("No blocks selected.")
-        st.stop()
+        st.error("No blocks selected."); st.stop()
 
-    # build all blocks into ONE zip
+    # build everything into ONE zip
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         built_files: list[Path] = []
         for code in blocks:
             with st.spinner(f"Running {code} ..."):
-                md_path = build_block(code, payload)
-                built_files.append(md_path)
+                built_files.append(build_block(code, payload))
 
-        # pack everything into single zip
         pack_name = (
             "Complete_Bundle" if mode == "Complete bundle (€1 997)" else
             f"{bundle_choice.replace(' ', '_')}_Bundle" if mode == "Individual bundle" else
             "Individual_Prompts"
         ) + f"_{int(time.time())}.zip"
+
         final_zip = tmpdir_path / pack_name
         with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
             for bf in built_files:
@@ -187,20 +199,21 @@ if submitted:
         persist_dir = Path(tempfile.mkdtemp(prefix="aiactpack_"))
         saved_zip = shutil.copy2(final_zip, persist_dir / final_zip.name)
 
-    st.session_state.zips = [saved_zip]   # single zip
+    st.session_state.zips = [saved_zip]
     st.session_state.cart = blocks
     st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
-# --------------------------------------------------
-#  DOWNLOAD / PAY AREA
-# --------------------------------------------------
+# ------------------------------------------------------------------
+#  9.  DOWNLOAD / PAYMENT AREA
+# ------------------------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
     st.markdown("### 📦 Download")
 
+    z = st.session_state.zips[0]
+
     if TEST_MODE:
         st.success("🎁 TEST MODE – download is free.")
-        z = st.session_state.zips[0]
         st.download_button(
             label=f"⬇️ {z.name}",
             data=z.read_bytes(),
@@ -211,14 +224,29 @@ if st.session_state.zips:
     else:
         st.info("Pay once, then download the full pack.")
         if st.button("Create secure checkout session", type="primary"):
-            ck_url = create_stripe_checkout_session(st.session_state.cart)
-            st.session_state.checkout_url = ck_url
+            # choose correct payment link
+            cart = st.session_state.cart
+            if set(cart) == set(["A00"] + [f"A{j:02d}" for j in range(1, 21)] +
+                                [f"B{j:02d}" for j in range(1, 15)] +
+                                [f"C{j:02d}" for j in range(1, 14)]):
+                url = STRIPE_LINKS["complete"]
+            elif all(c.startswith("A") for c in cart):
+                url = STRIPE_LINKS["eu_bundle"]
+            elif all(c.startswith("B") for c in cart):
+                url = STRIPE_LINKS["nist_bundle"]
+            elif all(c.startswith("C") for c in cart):
+                url = STRIPE_LINKS["iso_bundle"]
+            else:
+                url = STRIPE_LINKS["individual"]
+
+            st.session_state.checkout_url = url
+
         if st.session_state.checkout_url:
             st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
 
-# --------------------------------------------------
-#  FOOTER  (updated links)
-# --------------------------------------------------
+# ------------------------------------------------------------------
+#  10.  FOOTER
+# ------------------------------------------------------------------
 st.markdown("---")
 st.markdown(
     '<div style="text-align:center;font-size:0.9rem;color:#777;">'
