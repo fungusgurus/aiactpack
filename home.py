@@ -1,20 +1,21 @@
 # --------------------------------------------------
-#  home.py  –  EU AI Act Pack™  (Stripe Payment-Link edition)
-#  No backend required – just paste your Payment Links and ship.
+#  home.py  –  AI Act Pack™  (NOWPayments crypto checkout)
+#  0.5 % fee, auto EUR conversion, fiat to bank next day.
 # --------------------------------------------------
 import os, time, shutil, tempfile, zipfile
 from pathlib import Path
 import streamlit as st
 
 # ------------------------------------------------------------------
-#  1.  CONFIG –  paste your Stripe Payment Links here
+#  1.  CONFIG –  paste your NOWPayments permanent links here
+#      Dashboard: https://account.nowpayments.io → Payment Tools → Payment Link
 # ------------------------------------------------------------------
-STRIPE_LINKS = {
-    "individual":  "https://buy.stripe.com/xxxxxxxxxxxxx",   # €50
-    "eu_bundle":   "https://buy.stripe.com/xxxxxxxxxxxxx",   # €899
-    "nist_bundle": "https://buy.stripe.com/xxxxxxxxxxxxx",   # €599
-    "iso_bundle":  "https://buy.stripe.com/xxxxxxxxxxxxx",   # €549
-    "complete":    "https://buy.stripe.com/xxxxxxxxxxxxx",   # €1 997
+NOW_LINKS = {
+    "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
+    "eu_bundle":   "https://nowpayments.io/payment/?amount=899&currency=eur&invoice_id=aiactpack-eu",
+    "nist_bundle": "https://nowpayments.io/payment/?amount=599&currency=eur&invoice_id=aiactpack-nist",
+    "iso_bundle":  "https://nowpayments.io/payment/?amount=549&currency=eur&invoice_id=aiactpack-iso",
+    "complete":    "https://nowpayments.io/payment/?amount=1997&currency=eur&invoice_id=aiactpack-full",
 }
 
 # ------------------------------------------------------------------
@@ -71,11 +72,7 @@ body{background:linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 # ------------------------------------------------------------------
 #  5.  SESSION STATE
 # ------------------------------------------------------------------
-for key, default in (
-    ("zips", []),
-    ("cart", []),
-    ("checkout_url", None),
-):
+for key, default in (("zips", []), ("cart", []), ("checkout_url", None)):
     if key not in st.session_state:
         setattr(st.session_state, key, default)
 
@@ -159,7 +156,6 @@ if submitted:
         "deploy_env", "ce_mark", "target_mkt", "sandbox", "model_family", "data_sources"
     }}
 
-    # decide which blocks to generate
     if mode == "Individual prompts (€50 each)":
         blocks = selected_individual
     elif mode == "Individual bundle":
@@ -204,7 +200,7 @@ if submitted:
     st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
 # ------------------------------------------------------------------
-#  9.  DOWNLOAD / PAYMENT AREA
+#  9.  DOWNLOAD / PAYMENT AREA  (NOWPayments crypto checkout)
 # ------------------------------------------------------------------
 if st.session_state.zips:
     st.markdown("---")
@@ -222,27 +218,25 @@ if st.session_state.zips:
             key="final_zip",
         )
     else:
-        st.info("Pay once, then download the full pack.")
-        if st.button("Create secure checkout session", type="primary"):
-            # choose correct payment link
+        st.info("Pay once in **crypto** (any wallet).  Fiat conversion & fiat payout handled automatically.")
+        if st.button("Create crypto checkout session", type="primary"):
             cart = st.session_state.cart
             if set(cart) == set(["A00"] + [f"A{j:02d}" for j in range(1, 21)] +
                                 [f"B{j:02d}" for j in range(1, 15)] +
                                 [f"C{j:02d}" for j in range(1, 14)]):
-                url = STRIPE_LINKS["complete"]
+                url = NOW_LINKS["complete"]
             elif all(c.startswith("A") for c in cart):
-                url = STRIPE_LINKS["eu_bundle"]
+                url = NOW_LINKS["eu_bundle"]
             elif all(c.startswith("B") for c in cart):
-                url = STRIPE_LINKS["nist_bundle"]
+                url = NOW_LINKS["nist_bundle"]
             elif all(c.startswith("C") for c in cart):
-                url = STRIPE_LINKS["iso_bundle"]
+                url = NOW_LINKS["iso_bundle"]
             else:
-                url = STRIPE_LINKS["individual"]
-
+                url = NOW_LINKS["individual"]
             st.session_state.checkout_url = url
 
         if st.session_state.checkout_url:
-            st.link_button("Pay now →", st.session_state.checkout_url, type="primary")
+            st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
 #  10.  FOOTER
