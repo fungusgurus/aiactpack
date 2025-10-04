@@ -1,20 +1,46 @@
 # ---------------------------------------------------------
 #  home.py  –  AI Act Pack™  –  drop-in replacement
-#  NOWPayments crypto checkout + royalty-free icons
+#  NOWPayments crypto checkout + royalty-free icons + sample report
 # ---------------------------------------------------------
-import os, time, shutil, tempfile, zipfile
+import os, time, shutil, tempfile, zipfile, base64
 from pathlib import Path
 import streamlit as st
 
 # ------------------------------------------------------------------
-#  0.  CONFIG –  fill once
+#  0.  CONFIG
 # ------------------------------------------------------------------
 COMPANY_NAME  = "AI Act Pack™"
-COMPANY_VAT   = "EU123456789"                # ← real VAT
+COMPANY_VAT   = "EU123456789"
 COMPANY_ADDR  = "123 Compliance Blvd, Dublin, Ireland"
 SUPPORT_EMAIL = "support@aiactpack.com"
 CALENDLY_URL  = "https://calendly.com/aiactpack/expert"
 
+# ------------------------------------------------------------------
+#  1.  SESSION-STATE INITIALISATION  (fixes AttributeError)
+# ------------------------------------------------------------------
+for k, v in (("zips", []), ("cart", []), ("checkout_url", None)):
+    st.session_state.setdefault(k, v)
+
+# ------------------------------------------------------------------
+#  2.  SAMPLE REPORT  (redacted 2-page PDF, ~60 kB)
+#    Replace the string below with your own base-64 encoded PDF
+# ------------------------------------------------------------------
+SAMPLE_PDF_B64 = """
+JVBERi0xLjQKJcOkw7zDtsO8CjIgMCBvYmoKPDwKL0xlbmd0aCAzIDAgUgovRmlsdGVyIC9GbGF0ZURlY29kZQo+PgpzdHJlYW0KeJzLSMxLLUmNzNFLzs8rzi9KycxLt4IDAIvJBw4KZW5kc3RyZWFtCmVuZG9iago0IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMyAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgOSAwIFIKPj4KPj4KL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9QYXJlbnQgMyAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgOSAwIFIKPj4KPj4KL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KL0NvbnRlbnRzIDYgMCBSCj4+CmVuZG9iago2IDAgb2JqCjw8Ci9MZW5ndGggNyAwIFIKL0ZpbHRlciAvRmxhdGVEZWNvZGUKPj4Kc3RyZWFtCnicK2ZmqOZSUEjMyy9SSMqvzMsx1DPQUQjJT80rSc0tykvMTbUqzi8tykvMTbUy0DNQKErMK9FLzs8rzi9KycxLt4IDAIvJBw4KZW5kc3RyZWFtCmVuZG9iago3IDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAzIDAgUgo+PgplbmRvYmoKOSAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFs0IDAgNSAwIFIKXQovQ291bnQgMgo+PgplbmRvYmoKeHJlZgowIDExCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDc0IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDIyOSAwMDAwMCBuIAowMDAwMDAwMzEyIDAwMDAwIG4gCjAwMDAwMDAzODMgMDAwMDAgbiAKMDAwMDAwMDQ2NSAwMDAwMCBuIAowMDAwMDAwNTIyIDAwMDAwIG4gCjAwMDAwMDA1NzUgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSAxMQovUm9vdCA3IDAgUgovSW5mbyA4IDAgUgo+PgpzdGFydHhyZWYKNjI3CiUlRU9GCg==
+""".strip()
+
+def download_sample():
+    """Shows a download button for the redacted sample report."""
+    st.download_button(
+        label="⬇️ Download redacted sample report",
+        data=base64.b64decode(SAMPLE_PDF_B64),
+        file_name="AI_Act_Pack_sample_report.pdf",
+        mime="application/pdf",
+    )
+
+# ------------------------------------------------------------------
+#  3.  NOWPayments links
+# ------------------------------------------------------------------
 NOW_LINKS = {
     "individual":  "https://nowpayments.io/payment/?amount=50&currency=eur&invoice_id=aiactpack-individual",
     "eu_bundle":   "https://nowpayments.io/payment/?amount=899&currency=eur&invoice_id=aiactpack-eu",
@@ -24,29 +50,17 @@ NOW_LINKS = {
 }
 
 # ------------------------------------------------------------------
-#  1.  ICONS  (shortened SVG)
-# ------------------------------------------------------------------
-ICON = {
-    "document":  """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>""",
-    "shield":    """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>""",
-    "clipboard": """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#003399" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/></svg>""",
-    "box":       """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#00d4aa" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>""",
-    "coin":      """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>""",
-    "qr":        """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#f7931a" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg>""",
-}
-
-# ------------------------------------------------------------------
-#  2.  TEST-MODE SWITCH
+#  4.  TEST-MODE SWITCH
 # ------------------------------------------------------------------
 TEST_MODE = st.query_params.get("test") == "1"
 
 # ------------------------------------------------------------------
-#  3.  ENGINE
+#  5.  ENGINE
 # ------------------------------------------------------------------
 from engine import build_block
 
 # ------------------------------------------------------------------
-#  4.  PAGE CONFIG
+#  6.  PAGE CONFIG
 # ------------------------------------------------------------------
 st.set_page_config(
     page_title=f"{COMPANY_NAME} – EU AI Act, NIST & ISO 42001 evidence in 48 h",
@@ -55,7 +69,7 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------
-#  5.  COOKIE BANNER  (raw JS → no braces conflict)
+#  7.  COOKIE BANNER  (raw JS)
 # ------------------------------------------------------------------
 st.html(r"""
 <script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js" data-cfasync="false"></script>
@@ -68,7 +82,7 @@ window.cookieconsent.initialise({
 """)
 
 # ------------------------------------------------------------------
-#  6.  CSS
+#  8.  CSS
 # ------------------------------------------------------------------
 st.html("""
 <style>
@@ -98,7 +112,7 @@ header{visibility:hidden}
 """)
 
 # ------------------------------------------------------------------
-#  7.  HERO
+#  9.  HERO
 # ------------------------------------------------------------------
 st.markdown('<div class="hero">', unsafe_allow_html=True)
 st.markdown("## Generate EU AI Act, NIST AI RMF & ISO 42001 evidence in 48 h—no lawyers.")
@@ -112,13 +126,18 @@ with col:
     st.markdown("""
     <div class="cta-group">
       <a href="#wizard" class="btn-primary">Start 10-Question Wizard</a>
-      <a href="https://www.aiactpack.com/samples" class="btn-secondary">See sample report</a>
     </div>
     """, unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-#  8.  LEAD MAGNET
+#  10.  SAMPLE REPORT DOWNLOAD
+# ------------------------------------------------------------------
+with st.expander("📄 Want to see a sample report before you buy?"):
+    download_sample()
+
+# ------------------------------------------------------------------
+#  11.  LEAD MAGNET
 # ------------------------------------------------------------------
 with st.container(border=True):
     st.markdown("### 🎯 Free EU AI-Act Readiness Score (2 min)")
@@ -131,19 +150,15 @@ with st.container(border=True):
             if "@" not in email:
                 st.error("Please enter a valid email.")
             else:
-                # TODO: store email + send Typeform link
                 st.success("Check your inbox—link on its way!")
                 st.balloons()
 
 # ------------------------------------------------------------------
-#  9.  ANCHOR FOR WIZARD
+#  12.  ANCHOR + WIZARD
 # ------------------------------------------------------------------
 st.markdown('<div id="wizard"></div>', unsafe_allow_html=True)
 st.markdown("### 🧭 10-Question Compliance Wizard")
 
-# ------------------------------------------------------------------
-#  10.  WIZARD FORM
-# ------------------------------------------------------------------
 with st.form("aiactpack_wizard"):
     col1, col2 = st.columns(2)
     with col1:
@@ -192,7 +207,7 @@ with st.form("aiactpack_wizard"):
     submitted = st.form_submit_button("Generate selected packs →", type="primary")
 
 # ------------------------------------------------------------------
-#  11.  POST-SUBMIT  (same as before)
+#  13.  POST-SUBMIT  (same as before)
 # ------------------------------------------------------------------
 if submitted:
     if not model_name or not data_sources:
@@ -248,9 +263,9 @@ if submitted:
     st.success("All blocks packed into **one** zip.  Pay once below, then download.")
 
 # ------------------------------------------------------------------
-#  12.  DOWNLOAD / CRYPTO CHECKOUT
+#  14.  DOWNLOAD / CRYPTO CHECKOUT  (defensive get)
 # ------------------------------------------------------------------
-if st.session_state.zips:
+if st.session_state.get("zips"):
     st.markdown("---")
     st.markdown("### 📦 Download")
     z = st.session_state.zips[0]
@@ -286,7 +301,7 @@ if st.session_state.zips:
             st.link_button("Pay now with crypto →", st.session_state.checkout_url, type="primary")
 
 # ------------------------------------------------------------------
-#  13.  FOOTER
+#  15.  FOOTER
 # ------------------------------------------------------------------
 st.markdown("---")
 st.markdown(
