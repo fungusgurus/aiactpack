@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EU AI Act Conformity Report</title>
+  <style>
+    @page{size:A4;margin:2cm}
+    body{font-family:Helvetica,sans-serif;font-size:11pt;color:#333}
+    h1,h2{color:#003399;margin-top:0}
+    table{width:100%;border-collapse:collapse;margin-top:1em}
+    th,td{border:1px solid #ccc;padding:6px}
+    th{background:#f5f5f5;text-align:left}
+    .redacted{background:#000;color:#000}
+  </style>
+</head>
+<body>
+  <p><strong>AI Act Pack™ | EU AI Act Conformity Assessment – REDACTED REPORT</strong><br>
+  <em>confidential – client identifying data removed</em></p>
+
+  <h2>Executive Summary</h2>
+  <p>The high-level screening of <strong>{{ trade_name }}</strong> ({{ model_family }}) against Regulation (EU) 2024/1689 shows
+  <strong>{{ overall_status }}</strong> that would prevent a Notified-Body submission.</p>
+  <ul>
+    <li><strong>Risk class:</strong> {{ risk_class }}</li>
+    <li><strong>Conformity route:</strong> Module B + Module C1</li>
+    <li><strong>Evidence pack:</strong> {{ evidence_ready }} of {{ evidence_total }} deliverables ready</li>
+    <li><strong>Estimated effort:</strong> {{ effort_days }} consultant days to close gaps</li>
+  </ul>
+
+  <h2>Scope & System Card</h2>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Trade name</td><td>{{ trade_name }}</td></tr>
+    <tr><td>Version</td><td>{{ version }}</td></tr>
+    <tr><td>Provider</td><td>{{ provider }}</td></tr>
+    <tr><td>High-risk use-case</td><td>{{ high_risk_use_case }}</td></tr>
+    <tr><td>Deployment</td><td>{{ deployment }}</td></tr>
+    <tr><td>Expected EU users</td><td>{{ n_users }}</td></tr>
+  </table>
+
+  <h2>Risk Classification Matrix (Annex III)</h2>
+  <table>
+    <tr><th>Provision</th><th>Applicable</th><th>Risk level</th><th>Status</th></tr>
+    <tr><td>§6(a) credit scoring</td><td>✅</td><td>High</td><td>{{ gap_6a_status }}</td></tr>
+    <tr><td>§5 prohibited practices</td><td>✅</td><td>N/A</td><td>No prohibition triggered</td></tr>
+    <tr><td>§8 transparency</td><td>✅</td><td>Limited</td><td>{{ transparency_status }}</td></tr>
+  </table>
+
+  <h2>Gap & Evidence Checklist</h2>
+  <table>
+    <tr><th>Deliverable</th><th>Status</th><th>Notes</th></tr>
+    <tr><td>Risk-management system (Art. 9)</td><td>{{ risk_mgmt_status }}</td><td>{{ risk_mgmt_notes }}</td></tr>
+    <tr><td>Data governance sheet (Art. 10)</td><td>{{ data_gov_status }}</td><td>{{ data_gov_notes }}</td></tr>
+    <tr><td>Technical documentation (Annex IV)</td><td>{{ tech_doc_status }}</td><td>{{ tech_doc_notes }}</td></tr>
+    <tr><td>Conformity assessment (Module B)</td><td>{{ module_b_status }}</td><td>{{ module_b_notes }}</td></tr>
+  </table>
+
+  <h2>Next Steps</h2>
+  <ol>
+    <li>Finalise Module B submission pack (est. {{ module_b_days }} days).</li>
+    <li>Schedule Notified-Body pre-audit (week {{ nb_week }}).</li>
+    <li>Upload EU declaration to EUDAMED (within 10 days of NB opinion).</li>
+    <li>Affix CE mark & EU address on UI (prior to go-live).</li>
+    <li>Activate post-market monitoring log (Day-0).</li>
+  </ol>
+</body>
+</html>
