@@ -9,6 +9,16 @@ import streamlit as st
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML, CSS
 
+#----------------------------------------------------------
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3VBE9GMN81"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3VBE9GMN81');
+</script>
+
 # ------------------------------------------------------------------
 #  0.  CONFIG
 # ------------------------------------------------------------------
@@ -76,6 +86,12 @@ st.set_page_config(
     page_icon="⚖️",
     layout="centered",
 )
+
+# SEO META TAGS - ADD THIS AFTER PAGE CONFIG
+st.markdown("""
+<meta name="description" content="EU AI Act, NIST AI RMF & ISO 42001 compliance templates. Generate evidence in 48h. Save €15k+ in advisory fees. Trusted by 200+ AI teams.">
+<meta name="keywords" content="EU AI Act, AI compliance, NIST AI RMF, ISO 42001, AI regulations, compliance templates">
+""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 #  8.  COOKIE BANNER
@@ -145,6 +161,7 @@ st.markdown("""
     <span style="background: #28a745; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">✅ Money-Back Guarantee</span>
 </div>
 """, unsafe_allow_html=True)
+
 # ENHANCED CTA BUTTON - REPLACE YOUR EXISTING ONE
 st.markdown("""
 <div style="text-align: center; margin: 2rem 0;">
@@ -168,6 +185,60 @@ st.markdown("""
     <small style="color: #666;">No credit card required • Get instant results</small>
 </div>
 """, unsafe_allow_html=True)
+
+# TRUSTED BY SECTION - ADD THIS AFTER YOUR CTA BUTTON
+st.markdown("""
+<div style="text-align: center; margin: 3rem 0 2rem 0;">
+    <h4 style="color: #666; margin-bottom: 1rem;">Trusted by AI Teams Across Industries</h4>
+    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; font-weight: bold;">
+        <span style="color: #003399;">🏦 FinTech</span>
+        <span style="color: #003399;">🏥 HealthTech</span>
+        <span style="color: #003399;">👥 HR Tech</span>
+        <span style="color: #003399;">🚗 Automotive</span>
+        <span style="color: #003399;">🛒 Retail</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# HOW IT WORKS SECTION - ADD THIS AFTER TRUSTED BY
+st.markdown("### 🎯 How It Works")
+steps_col1, steps_col2, steps_col3, steps_col4 = st.columns(4)
+
+with steps_col1:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem;">
+        <div style="background: #003399; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-weight: bold;">1</div>
+        <strong>Answer 10 Questions</strong>
+        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0 0 0;">5 minutes</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with steps_col2:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem;">
+        <div style="background: #00d4aa; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-weight: bold;">2</div>
+        <strong>Get AI Assessment</strong>
+        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0 0 0;">Instant</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with steps_col3:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem;">
+        <div style="background: #003399; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-weight: bold;">3</div>
+        <strong>Download Templates</strong>
+        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0 0 0;">48 hours</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with steps_col4:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem;">
+        <div style="background: #00d4aa; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-weight: bold;">4</div>
+        <strong>Achieve Compliance</strong>
+        <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0 0 0;">✅ Done</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 #  11.  SAMPLE REPORT DOWNLOAD
