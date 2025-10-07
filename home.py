@@ -9,15 +9,7 @@ import streamlit as st
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML, CSS
 
-#----------------------------------------------------------
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-3VBE9GMN81"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-3VBE9GMN81');
-</script>
+
 
 # ------------------------------------------------------------------
 #  0.  CONFIG
@@ -508,3 +500,4 @@ st.markdown(
     </div>""",
     unsafe_allow_html=True,
 )
+
